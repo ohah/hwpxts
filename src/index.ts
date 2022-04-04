@@ -3,14 +3,21 @@ import { Hwpx } from "./xml/hwpx";
 var zip = new JSzip();
 (async () => {
   const hwpx = new Hwpx();
-  hwpx.filename = "./hwpx/table.hwpx";
+  hwpx.filepath = "./hwpx/table.hwpx";
   // console.log('hwpx', hwpx);
+  // console.log('hwpx', hwpx.hwpx);
   // console.log("test");
   const table = await fetch("./hwpx/table.hwpx");
   // console.log('table', table);
   // console.log('array', await table.arrayBuffer());
   const arraybuffer = await table.arrayBuffer();
-  console.log('hwpx', await hwpx.header);
+  console.log('header', await hwpx.header);
+  console.log('section', await hwpx.section);
+  console.log('section', await hwpx.content);
+  console.log('metaInf', await hwpx.metaInf);
+  console.log('preview', await hwpx.preview);
+  console.log('scripts', await hwpx.scripts);
+  return false;
   // console.log('hwpx2', await hwpx.header);
   JSzip.loadAsync(arraybuffer).then(function (zip) {
     // console.log('files', zip);
