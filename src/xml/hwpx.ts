@@ -1,8 +1,7 @@
 import JSZip from "jszip";
 import { Url } from "url";
-import { XmlContent } from "./content";
-import { XmlHeader } from "./header";
-
+import { XMLParser } from "fast-xml-parser"
+import { Content, Header } from "../type";
 export class Hwpx extends JSZip {
   #filepath: string;
   private zip: JSZip;
@@ -59,19 +58,16 @@ export class Hwpx extends JSZip {
    * header 데이터 가져옴
    * @returns XMLDocument
    */
-  get header(): Document | any {
+  get header(): Promise<Header> | Promise<undefined> {
     return (async () => {
       try {
         if (this.zip.files["Contents/header.xml"]) {
-          const parser = new DOMParser();
-          const xmlDoc = parser.parseFromString(await this.zip.files["Contents/header.xml"].async("string"), "application/xml");
-          // console.log('name', name, xmlDoc);
-          const xmlHeader = new XmlHeader(xmlDoc);
-          console.log(xmlHeader.refList)
-          return xmlDoc;
+          const json = new XMLParser({ignoreAttributes : false, removeNSPrefix : true, attributeNamePrefix : "", allowBooleanAttributes : true}).parse(await this.zip.files["Contents/header.xml"].async("string"))
+          return json;
         }
         // console.log(await this.arraybuffer());
       } catch (e) {
+        return undefined;
         console.log("header error", e);
       }
     })();
@@ -81,14 +77,12 @@ export class Hwpx extends JSZip {
    * content 데이터 가져옴
    * @returns XMLDocument
    */
-  get content(): Promise<XmlContent> | Promise<undefined> {
+  get content(): Promise<Content> | Promise<undefined> {
     return (async () => {
       try {
         if (this.zip.files["Contents/content.hpf"]) {
-          const parser = new DOMParser();
-          const xmlDoc = parser.parseFromString(await this.zip.files["Contents/content.hpf"].async("string"), "application/xml");
-          const content = new XmlContent(xmlDoc)
-          return content;
+          const json = new XMLParser({ignoreAttributes : false, removeNSPrefix : true, attributeNamePrefix : "", allowBooleanAttributes : true}).parse(await this.zip.files["Contents/content.hpf"].async("string"))
+          return json;
         }
         // console.log(await this.arraybuffer());
       } catch (e) {
@@ -110,10 +104,9 @@ export class Hwpx extends JSZip {
         await Promise.all(
           Object.keys(this.zip.files).map(async (file) => {
             if (name.includes(file)) {
-              const parser = new DOMParser();
-              const xmlDoc = parser.parseFromString(await this.zip.files[`${file}`].async("string"), "application/xml");
-              sections.push(xmlDoc)
-              // return xmlDoc;
+              const json = new XMLParser({ignoreAttributes : false, removeNSPrefix : true, attributeNamePrefix : "", allowBooleanAttributes : true}).parse(await this.zip.files[`${file}`].async("string"));
+              sections.push(json);
+              // return json;
             } else {
               // return null;
             }
@@ -138,10 +131,8 @@ export class Hwpx extends JSZip {
         await Promise.all(
           Object.keys(this.zip.files).map(async (file) => {
             if (name.includes(file)) {
-              const parser = new DOMParser();
-              // console.log(await this.zip.files[`${file}`].async("string")); 
-              const xmlDoc = parser.parseFromString(await this.zip.files[`${file}`].async("string"), "application/xml");
-              metas.push(xmlDoc);
+              const json = new XMLParser({ignoreAttributes : false, removeNSPrefix : true, attributeNamePrefix : "", allowBooleanAttributes : true}).parse(await this.zip.files[`${file}`].async("string"))
+              metas.push(json);
               // return xmlDoc;
             } else {
               // return null;
@@ -166,10 +157,10 @@ export class Hwpx extends JSZip {
     return (async () => {
       try {
         if (this.zip.files["version.xml"]) {
-          const parser = new DOMParser();
-          const xmlDoc = parser.parseFromString(await this.zip.files["Contents/header.xml"].async("string"), "application/xml");
-          // console.log('name', name, xmlDoc);
-          return xmlDoc;
+          const json = new XMLParser({ignoreAttributes : false, removeNSPrefix : true, attributeNamePrefix : "", allowBooleanAttributes : true}).parse(await this.zip.files["version.xml"].async("string"))
+          console.log('version', JSON.stringify(json));
+
+          return json;
         }
         // console.log(await this.arraybuffer());
       } catch (e) {
@@ -186,10 +177,8 @@ export class Hwpx extends JSZip {
     return (async () => {
       try {
         if (this.zip.files["settings.xml"]) {
-          const parser = new DOMParser();
-          const xmlDoc = parser.parseFromString(await this.zip.files["Contents/header.xml"].async("string"), "application/xml");
-          // console.log('name', name, xmlDoc);
-          return xmlDoc;
+          const json = new XMLParser({ignoreAttributes : false, removeNSPrefix : true, attributeNamePrefix : "", allowBooleanAttributes : true}).parse(await this.zip.files["settings.xml"].async("string"))
+          return json;
         }
         // console.log(await this.arraybuffer());
       } catch (e) {

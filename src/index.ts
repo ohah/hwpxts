@@ -13,10 +13,11 @@ var zip = new JSzip();
   const arraybuffer = await table.arrayBuffer();
   console.log('header', await hwpx.header);
   console.log('section', await hwpx.section);
-  console.log('content', await hwpx.content);
+  console.log('content', await (await hwpx.content).package);
   console.log('metaInf', await hwpx.metaInf);
   console.log('preview', await hwpx.preview);
   console.log('scripts', await hwpx.scripts);
+  console.log('version', await hwpx.version);
   return false;
   // console.log('hwpx2', await hwpx.header);
   JSzip.loadAsync(arraybuffer).then(function (zip) {

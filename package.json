@@ -30,6 +30,7 @@
     "webpack-dev-server": "^4.7.3"
   },
   "dependencies": {
+    "fast-xml-parser": "^4.0.7",
     "fs": "^0.0.1-security",
     "jszip": "^3.8.0"
   }
