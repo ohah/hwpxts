@@ -1,5 +1,7 @@
 import JSZip from "jszip";
 import { Url } from "url";
+import { XmlContent } from "./content";
+import { XmlHeader } from "./header";
 
 export class Hwpx extends JSZip {
   #filepath: string;
@@ -64,6 +66,8 @@ export class Hwpx extends JSZip {
           const parser = new DOMParser();
           const xmlDoc = parser.parseFromString(await this.zip.files["Contents/header.xml"].async("string"), "application/xml");
           // console.log('name', name, xmlDoc);
+          const xmlHeader = new XmlHeader(xmlDoc);
+          console.log(xmlHeader.refList)
           return xmlDoc;
         }
         // console.log(await this.arraybuffer());
@@ -77,19 +81,19 @@ export class Hwpx extends JSZip {
    * content 데이터 가져옴
    * @returns XMLDocument
    */
-  get content(): Document | any {
+  get content(): Promise<XmlContent> | Promise<undefined> {
     return (async () => {
       try {
         if (this.zip.files["Contents/content.hpf"]) {
           const parser = new DOMParser();
           const xmlDoc = parser.parseFromString(await this.zip.files["Contents/content.hpf"].async("string"), "application/xml");
-          // console.log('name', name, xmlDoc);
-          // console.log('test', await this.zip.files["Contents/content.hpf"].async("string"));
-          return xmlDoc;
+          const content = new XmlContent(xmlDoc)
+          return content;
         }
         // console.log(await this.arraybuffer());
       } catch (e) {
         console.log("error", e);
+        return undefined;
       }
     })();
   }

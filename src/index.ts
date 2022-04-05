@@ -13,7 +13,7 @@ var zip = new JSzip();
   const arraybuffer = await table.arrayBuffer();
   console.log('header', await hwpx.header);
   console.log('section', await hwpx.section);
-  console.log('section', await hwpx.content);
+  console.log('content', await hwpx.content);
   console.log('metaInf', await hwpx.metaInf);
   console.log('preview', await hwpx.preview);
   console.log('scripts', await hwpx.scripts);
