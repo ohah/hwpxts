@@ -1,13 +1,22 @@
 import JSZip from "jszip";
 import { Url } from "url";
-import { XMLParser } from "fast-xml-parser"
+import { X2jOptions, XMLParser } from "fast-xml-parser"
 import { Content, Header } from "../type";
+const options: Partial<X2jOptions> = {
+  ignoreAttributes: false,
+  removeNSPrefix: true,
+  attributeNamePrefix: "",
+  allowBooleanAttributes: true,
+  numberParseOptions : {
+    leadingZeros : true,
+    hex : true,
+  },
+};
 export class Hwpx extends JSZip {
   #filepath: string;
   private zip: JSZip;
   constructor() {
     super();
-    // console.log("console", this);
     if (this.#filepath !== undefined) {
       this.Init();
     }
@@ -18,7 +27,6 @@ export class Hwpx extends JSZip {
    */
   set filepath(name: string) {
     this.#filepath = name;
-    this.Init();
   }
 
   /**
@@ -36,6 +44,7 @@ export class Hwpx extends JSZip {
   get binData():any {
     const binDatas = [];
     return (async () => {
+      await this.Init();
       try {
         const name = Object.keys(this.zip.files).filter(file => file.match(/BinData/))
         await Promise.all(
@@ -60,9 +69,16 @@ export class Hwpx extends JSZip {
    */
   get header(): Promise<Header> | Promise<undefined> {
     return (async () => {
+      await this.Init();
+      // console.log(this.zip.files);
       try {
         if (this.zip.files["Contents/header.xml"]) {
-          const json = new XMLParser({ignoreAttributes : false, removeNSPrefix : true, attributeNamePrefix : "", allowBooleanAttributes : true}).parse(await this.zip.files["Contents/header.xml"].async("string"))
+          const json = new XMLParser(options).parse(await this.zip.files["Contents/header.xml"].async("string"))
+          Object.entries(json).map(row=>{
+            console.log('row', row)
+          })
+          // console.log(json);
+          // console.log('test', JSON.stringify(json, null, 2));
           return json;
         }
         // console.log(await this.arraybuffer());
@@ -79,9 +95,10 @@ export class Hwpx extends JSZip {
    */
   get content(): Promise<Content> | Promise<undefined> {
     return (async () => {
+      await this.Init();
       try {
         if (this.zip.files["Contents/content.hpf"]) {
-          const json = new XMLParser({ignoreAttributes : false, removeNSPrefix : true, attributeNamePrefix : "", allowBooleanAttributes : true}).parse(await this.zip.files["Contents/content.hpf"].async("string"))
+          const json = new XMLParser(options).parse(await this.zip.files["Contents/content.hpf"].async("string"))
           return json;
         }
         // console.log(await this.arraybuffer());
@@ -99,12 +116,13 @@ export class Hwpx extends JSZip {
   get section(): [Document] | any {
     const sections: Array<Document> = [];
     return (async () => {
+      await this.Init();
       try {
         const name = Object.keys(this.zip.files).filter(file => file.match(/Contents\/section[0-9]{1,1000}/))
         await Promise.all(
           Object.keys(this.zip.files).map(async (file) => {
             if (name.includes(file)) {
-              const json = new XMLParser({ignoreAttributes : false, removeNSPrefix : true, attributeNamePrefix : "", allowBooleanAttributes : true}).parse(await this.zip.files[`${file}`].async("string"));
+              const json = new XMLParser(options).parse(await this.zip.files[`${file}`].async("string"));
               sections.push(json);
               // return json;
             } else {
@@ -126,12 +144,13 @@ export class Hwpx extends JSZip {
   get metaInf(): [Document] | any {
     const metas: Array<Document> = [];
     return (async () => {
+      await this.Init();
       try {
         const name = Object.keys(this.zip.files).filter(file => file.match(/META-INF/))
         await Promise.all(
           Object.keys(this.zip.files).map(async (file) => {
             if (name.includes(file)) {
-              const json = new XMLParser({ignoreAttributes : false, removeNSPrefix : true, attributeNamePrefix : "", allowBooleanAttributes : true}).parse(await this.zip.files[`${file}`].async("string"))
+              const json = new XMLParser(options).parse(await this.zip.files[`${file}`].async("string"))
               metas.push(json);
               // return xmlDoc;
             } else {
@@ -155,11 +174,11 @@ export class Hwpx extends JSZip {
    */
   get version(): Document | any {
     return (async () => {
+      await this.Init();
       try {
         if (this.zip.files["version.xml"]) {
-          const json = new XMLParser({ignoreAttributes : false, removeNSPrefix : true, attributeNamePrefix : "", allowBooleanAttributes : true}).parse(await this.zip.files["version.xml"].async("string"))
-          console.log('version', JSON.stringify(json));
-
+          const json = new XMLParser(options).parse(await this.zip.files["version.xml"].async("string"))
+          // console.log('version', JSON.stringify(json));
           return json;
         }
         // console.log(await this.arraybuffer());
@@ -175,9 +194,10 @@ export class Hwpx extends JSZip {
    */
   get settings(): Document | any {
     return (async () => {
+      await this.Init();
       try {
         if (this.zip.files["settings.xml"]) {
-          const json = new XMLParser({ignoreAttributes : false, removeNSPrefix : true, attributeNamePrefix : "", allowBooleanAttributes : true}).parse(await this.zip.files["settings.xml"].async("string"))
+          const json = new XMLParser(options).parse(await this.zip.files["settings.xml"].async("string"))
           return json;
         }
         // console.log(await this.arraybuffer());
@@ -194,6 +214,7 @@ export class Hwpx extends JSZip {
    */
   get mimetype(): Document | any {
     return (async () => {
+      await this.Init();
       try {
         if (this.zip.files["mimetype.xml"]) {
           const parser = new DOMParser();
@@ -214,6 +235,7 @@ export class Hwpx extends JSZip {
    */
   get preview(): { image: Url, text: string } | any {
     return (async () => {
+      await this.Init();
       const result = {
         image : null,
         text : null,
@@ -246,6 +268,7 @@ export class Hwpx extends JSZip {
    */
   get scripts(): { header: string, source: string } | any {
     return (async () => {
+      await this.Init();
       const result = {
         header : null,
         source : null,
@@ -254,13 +277,13 @@ export class Hwpx extends JSZip {
         if (this.zip.files["Scripts/headerScripts.js"]) {
           const uint_8 = new Uint8Array(await this.zip.files["Scripts/headerScripts.js"].async("uint8array"));
           const Decoder = new TextDecoder("utf-16le");
-          result.header = Decoder.decode(uint_8)
-          // result.hea der = await this.zip.files["Scripts/headerScripts.js"].async("uint8array");
+          result.header = Decoder.decode(uint_8);
+          // result.header = await this.zip.files["Scripts/headerScripts.js"].async("uint8array");
         }
         if (this.zip.files["Scripts/sourceScripts.js"]) {
           const uint_8 = new Uint8Array(await this.zip.files["Scripts/sourceScripts.js"].async("uint8array"));
           const Decoder = new TextDecoder("utf-16le");
-          result.header = Decoder.decode(uint_8)
+          result.header = Decoder.decode(uint_8);
         }
         return result;
       } catch (e) {
@@ -269,3 +292,6 @@ export class Hwpx extends JSZip {
     })();
   }
 }
+
+
+export default Hwpx;

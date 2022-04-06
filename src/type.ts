@@ -141,17 +141,8 @@ export enum CenterLine {
 
 export interface BottomBorder {
   type: CenterLine;
-  width: Width;
-  color: Color;
-}
-
-export enum Color {
-  The000000 = "#000000",
-}
-
-export enum Width {
-  The012Mm = "0.12 mm",
-  The01Mm = "0.1 mm",
+  width: string;
+  color: string;
 }
 
 export interface FillBrush {
@@ -198,7 +189,7 @@ export interface FontRef {
 
 export interface Strikeout {
   shape: CenterLine;
-  color: Color;
+  color: string;
 }
 
 export interface Fontfaces {
@@ -214,20 +205,14 @@ export interface Fontface {
 
 export interface Font {
   id: string;
-  face: Face;
+  face: string;
   type: SubstFontType;
   isEmbedded: string;
   substFont?: SubstFont;
 }
 
-export enum Face {
-  고양덕양Eb = "고양덕양 EB",
-  함초롬돋움 = "함초롬돋움",
-  함초롬바탕 = "함초롬바탕",
-}
-
 export interface SubstFont {
-  face: Face;
+  face: string;
   type: SubstFontType;
   isEmbedded: string;
   binaryItemIDRef: string;

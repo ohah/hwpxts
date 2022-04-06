@@ -15,6 +15,7 @@
     "@babel/preset-env": "^7.16.11",
     "@types/jest": "^27.4.0",
     "@types/jszip": "^3.4.1",
+    "@types/pako": "^1.0.3",
     "babel-loader": "^8.2.3",
     "css-loader": "^6.5.1",
     "csstype": "^3.0.10",
@@ -30,8 +31,10 @@
     "webpack-dev-server": "^4.7.3"
   },
   "dependencies": {
+    "cfb": "^1.2.1",
     "fast-xml-parser": "^4.0.7",
     "fs": "^0.0.1-security",
-    "jszip": "^3.8.0"
+    "jszip": "^3.8.0",
+    "pako": "^2.0.4"
   }
 }

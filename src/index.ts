@@ -1,24 +1,27 @@
 import JSzip from "jszip";
 import { Hwpx } from "./xml/hwpx";
+import { Hwp } from "./xml/hwp";
 var zip = new JSzip();
 (async () => {
+  const hwp = new Hwp(`./hwp/table.hwp`);
+  // return false;
   const hwpx = new Hwpx();
   hwpx.filepath = "./hwpx/table.hwpx";
   // console.log('hwpx', hwpx);
   // console.log('hwpx', hwpx.hwpx);
   // console.log("test");
-  const table = await fetch("./hwpx/table.hwpx");
   // console.log('table', table);
   // console.log('array', await table.arrayBuffer());
-  const arraybuffer = await table.arrayBuffer();
   console.log('header', await hwpx.header);
-  console.log('section', await hwpx.section);
-  console.log('content', await (await hwpx.content).package);
-  console.log('metaInf', await hwpx.metaInf);
-  console.log('preview', await hwpx.preview);
-  console.log('scripts', await hwpx.scripts);
-  console.log('version', await hwpx.version);
+  // console.log('section', await hwpx.section);
+  // console.log('content', await (await hwpx.content).package);
+  // console.log('metaInf', await hwpx.metaInf);
+  // console.log('preview', await hwpx.preview);
+  // console.log('scripts', await hwpx.scripts);
+  // console.log('version', await hwpx.version);
   return false;
+  const table = await fetch("./hwpx/table.hwpx");
+  const arraybuffer = await table.arrayBuffer();
   // console.log('hwpx2', await hwpx.header);
   JSzip.loadAsync(arraybuffer).then(function (zip) {
     // console.log('files', zip);
