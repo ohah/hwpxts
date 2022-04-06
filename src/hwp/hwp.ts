@@ -1,7 +1,8 @@
 import pako from "pako";
 import CFB from "cfb";
-import { HWPTAG } from "../hwp/type";
+import { HWPTAG } from "./type";
 import { Header } from "../type";
+import { readRecord } from "./function";
 
 export class Cursor {
   public pos:number = 0;
@@ -99,13 +100,13 @@ export class Hwp {
         } catch (e) {
           const uint8 = new Uint8Array(entry.content);
           entry.content = uint8;
-          console.log("압축풀이가 안되는", entry.name);
+          // console.log("압축풀이가 안되는", entry.name);
         }
         return entry
       });
       // console.log("hwp", hwp);
       this.#hwp = hwp;
-      console.log('this', this.#hwp)
+      // console.log('this', this.#hwp)
       console.log(this.docInfo);
     })();
   }
@@ -113,46 +114,51 @@ export class Hwp {
   get docInfo() {
     const { content } = this.#hwp.find((entry)=>entry.name === "DocInfo");
     const c = new Cursor(0);
+    const test = [];
     while(c.pos < content.length) {
-      const { tag_id, level, size, move } = this.readRecord(new Uint8Array(content.slice(c.pos, c.move(4) + 4)));
+      const { tag_id, level, size, move } = readRecord(new Uint8Array(content.slice(c.pos, c.move(4) + 4)));
       // c.move(move);
-      c.move(size);
+      var start = c.pos;
+      // console.log('tag_id' , tag_id, c.pos, tag_id == HWPTAG.FACE_NAME)
+      // c.move(size);
       switch (tag_id) {
         case HWPTAG.DOCUMENT_PROPERTIES:
-          console.log('??')
+          // console.log('??')
+          var end = c.pos;
+          c.move(size - (end - start));
           break;
         case HWPTAG.ID_MAPPINGS:
-          console.log('??')
+          // console.log('??')
+          var end = c.pos;
+          c.move(size - (end - start));
           // this.header.head.
           break;
         case HWPTAG.FACE_NAME:
-
+          var data = {
+            font : {
+              type : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0) === 1 ? "HTF" : "TTF",
+            }
+          }
+          test.push(data);
+          var end = c.pos;
+          console.log('FONT_NAME',data)
+          c.move(size - (end - start));
           break;
         default:
+          var end = c.pos;
+          c.move(size - (end - start));
           break;
       }
     }
-    console.log(content);
+    console.log('test', test);
     // return this.hwp.find((entry)=>entry.name === "DocInfo").content;
     return "tq";
   }
 
-  
-  readRecord = function(data:Uint8Array) {
-    const value = new DataView(data.slice(0,4).buffer, 0).getUint32(0, true);
-    const tagID = value & 0x3FF;
-    const level = (value >> 10) & 0x3FF;
-    const size = (value >> 20) & 0xFFF;
-    if (size === 0xFFF) {
-      return {
-        tag_id : tagID,
-        level : level, 
-        size : new DataView(data.slice(4,8)).getUint32(0, true),
-        move : 4,
-      }
-    }
-    return {tag_id : tagID, level : level, size : size, move : 0}
+  slice = () => {
+
   }
+  
 }
 
 export default Hwp;

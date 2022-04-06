@@ -1,6 +1,6 @@
 import JSzip from "jszip";
-import { Hwpx } from "./xml/hwpx";
-import { Hwp } from "./xml/hwp";
+import { Hwpx } from "./hwpx/hwpx";
+import { Hwp } from "./hwp/hwp";
 var zip = new JSzip();
 (async () => {
   const hwp = new Hwp(`./hwp/table.hwp`);

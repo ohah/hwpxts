@@ -74,9 +74,12 @@ export class Hwpx extends JSZip {
       try {
         if (this.zip.files["Contents/header.xml"]) {
           const json = new XMLParser(options).parse(await this.zip.files["Contents/header.xml"].async("string"))
-          Object.entries(json).map(row=>{
-            console.log('row', row)
-          })
+          document.body.innerHTML = JSON.stringify(json, null, 2); // stringify with tabs inserted at each level
+          // console.log(json);
+          document.body.style.whiteSpace = "pre-wrap";
+          // Object.entries(json).map(row=>{
+            // console.log('row', row)
+          // })
           // console.log(json);
           // console.log('test', JSON.stringify(json, null, 2));
           return json;
