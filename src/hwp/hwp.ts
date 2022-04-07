@@ -2,7 +2,7 @@ import pako from "pako";
 import CFB from "cfb";
 import { HWPTAG } from "./type";
 import { Fontface, Header } from "../type";
-import { buf2hex, readRecord } from "./function";
+import { buf2hex, HwpHeader, readRecord } from "./util";
 import { Cursor } from "./cursor";
 export class Hwp {
   #cfb: CFB.CFB$Entry[];
@@ -96,29 +96,18 @@ export class Hwp {
         }
         return entry;
       });
-      // console.log("hwp", hwp);
       this.#cfb = cfb;
-      const { content } = this.#cfb.find((entry) => entry.name === "FileHeader");
-      this.#hwp = {
-        fileHeader : {}
-      };
-      console.log('test', this.#hwp)
-      this.#hwp.fileHeader.signature = new TextDecoder("utf8").decode(new Uint8Array(content.slice(0, 32)));
-      this.#hwp.fileHeader.version = parseInt(new Uint8Array(content.slice(32, 36)).reverse().join(""));
-      this.#hwp.fileHeader.attribute = new Uint8Array(content.slice(36, 40));
-      this.#hwp.fileHeader.license = new Uint8Array(content.slice(40, 44));
-      this.#hwp.fileHeader.hwpversion = buf2hex(new Uint8Array(content.slice(44, 48)));
-      this.#hwp.fileHeader.kogl = buf2hex(content.slice(48, 49));
-      this.#hwp.fileHeader.reservation = buf2hex(content.slice(49, 256));
-      console.log("this", this.#cfb);
-      // console.log(this.docInfo);
-      console.log('asdf', this.header);
+      console.log(this.#cfb);
       console.log('hwpversion', this.version);
+      const DocOptions = this.#cfb.find((entry) => entry.name === "DocOptions");
+      console.log(DocOptions);
     })();
   }
-
+  
   get version() {
-    return this.#hwp.fileHeader.version;
+    const { content } = this.#cfb.find((entry) => entry.name === "FileHeader");
+    return HwpHeader(content).version;
+    // return this.#hwp.fileHeader.version;
   }
 
   get header() {

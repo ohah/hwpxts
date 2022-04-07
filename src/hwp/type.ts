@@ -1,3 +1,8 @@
+import CFB from "cfb";
+/**
+ * Uint8array CFB.CFB$Blob
+ */
+export type HwpBlob = Uint8Array | CFB.CFB$Blob;
 export enum HWPTAG {
   //DOC INFO
   BEGIN = 0x10,
@@ -312,6 +317,14 @@ export enum HWPTAG {
    * */
   SHAPE_COMPONENT_UNKNOWN = HWPTAG.BEGIN + 99,
 }
+
+/**
+ * 0x17~0x49 까지 미싱링크
+ * 0x78
+ * 0x81
+ * 0x83~0x98
+ * 49개의 빈 레코드
+ */
 
 /**
  * 문서 이력 관리 레코드 정보

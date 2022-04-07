@@ -1,4 +1,5 @@
 import CFB from "cfb";
+import { HwpBlob } from "./type"
 /**
  * 바이너리 레코드 읽기
  * @param data 
@@ -76,6 +77,25 @@ export const RGB = (value) => {
  * @param buffer 
  * @returns hex code
  */
-export const buf2hex = (buffer:Uint8Array | CFB.CFB$Blob) => {
+export const buf2hex = (buffer: HwpBlob) => {
   return [...new Uint8Array(buffer)].map(x => x.toString(16).padStart(2, '0')).join(' ').toUpperCase();
+}
+export const HwpHeader = (content: HwpBlob) => {
+  return {
+    signature: new TextDecoder("utf8").decode(new Uint8Array(content.slice(0, 32))),
+    version: parseInt(new Uint8Array(content.slice(32, 36)).reverse().join("")),
+    attribute: new Uint8Array(content.slice(36, 40)),
+    license: new Uint8Array(content.slice(40, 44)),
+    hwpversion: buf2hex(new Uint8Array(content.slice(44, 48))),
+    kogl: buf2hex(content.slice(48, 49)),
+    reservation: buf2hex(content.slice(49, 256)),
+  }
+}
+
+export const HwpReader = (cfb:CFB.CFB$Entry[]) => {
+  return {
+    DocOptions : cfb.find((entry) => entry.name === "DocOptions"),
+    DocInfo : cfb.find((entry) => entry.name === "DocInfo"),
+    FileHeader : cfb.find((entry) => entry.name === "FileHeader"),
+  }
 }
