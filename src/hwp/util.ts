@@ -92,10 +92,28 @@ export const HwpHeader = (content: HwpBlob) => {
   }
 }
 
-export const HwpReader = (cfb:CFB.CFB$Entry[]) => {
+export const HwpReader = (cfb:CFB.CFB$Entry[]) => {  
   return {
-    DocOptions : cfb.find((entry) => entry.name === "DocOptions"),
+    DocOptions : {
+      _LinkDoc : cfb.find((entry) => entry.name === "_LinkDoc"),
+      DrmLicense : cfb.find((entry) => entry.name === "DrmLicense"),
+      DrmRootSect : cfb.find((entry) => entry.name === "DrmRootSect"),
+      CertDrmHeader : cfb.find((entry) => entry.name === "CertDrmHeader"),
+      CertDrmInfo : cfb.find((entry) => entry.name === "CertDrmInfo"),
+      DigitalSignature : cfb.find((entry) => entry.name === "DigitalSignature"),
+      PublicKeyInfo : cfb.find((entry) => entry.name === "PublicKeyInfo"),
+    },
     DocInfo : cfb.find((entry) => entry.name === "DocInfo"),
     FileHeader : cfb.find((entry) => entry.name === "FileHeader"),
+    Scripts: {
+      DefaultJScript : cfb.find((entry) => entry.name === "DefaultJScript"),
+      JScriptVersion : cfb.find((entry) => entry.name === "JScriptVersion"),
+    },
+    XMLTemplate: {
+      Schema : cfb.find((entry) => entry.name === "Schema"),
+      Instance : cfb.find((entry) => entry.name === "Instance"),
+    },
+    DocHistory: cfb.filter((entry)=>entry.name.match(/VersionLog[0-9]{1,1000}/)),
+    Section : cfb.filter((entry)=>entry.name.match(/Section[0-9]{1,1000}/))
   }
 }

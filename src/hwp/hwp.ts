@@ -2,12 +2,14 @@ import pako from "pako";
 import CFB from "cfb";
 import { HWPTAG } from "./type";
 import { Fontface, Header } from "../type";
-import { buf2hex, HwpHeader, readRecord } from "./util";
+import { buf2hex, HwpHeader, HwpReader, readRecord } from "./util";
 import { Cursor } from "./cursor";
+import { Section } from "../hwpx/type/section";
 export class Hwp {
   #cfb: CFB.CFB$Entry[];
   #hwpx: {
     header: Header;
+    section:Section[]
   };
   #hwp:any;
   constructor(filepath: string) {
@@ -79,6 +81,7 @@ export class Hwp {
           },
         },
       },
+      section : [],
     };
     (async () => {
       const file = await fetch(filepath);
@@ -98,14 +101,15 @@ export class Hwp {
       });
       this.#cfb = cfb;
       console.log(this.#cfb);
+      this.#hwp = HwpReader(this.#cfb);
+      console.log('reader', this.#hwp);
       console.log('hwpversion', this.version);
-      const DocOptions = this.#cfb.find((entry) => entry.name === "DocOptions");
-      console.log(DocOptions);
+      console.log('section', this.section);
     })();
   }
   
   get version() {
-    const { content } = this.#cfb.find((entry) => entry.name === "FileHeader");
+    const { content } = this.#hwp.FileHeader;
     return HwpHeader(content).version;
     // return this.#hwp.fileHeader.version;
   }
@@ -115,7 +119,7 @@ export class Hwp {
   }
 
   get docInfo() {
-    const { content } = this.#cfb.find((entry) => entry.name === "DocInfo");
+    const { content } = this.#hwp.DocInfo;
     const c = new Cursor(0);
     // console.log('tq')
     const test = [];
@@ -239,6 +243,201 @@ export class Hwp {
     console.log("test", test);
     // return this.hwp.find((entry)=>entry.name === "DocInfo").content;
     return "tq";
+  }
+
+  get section() {
+    const result = [];
+    const { version } = this;
+    this.#hwp.Section.map((section, i)=>{
+      const { content } = section;
+      let data:any;
+      const c = new Cursor(0);
+      while(c.pos < content.length) {
+        const { tag_id, level, size, move } = readRecord(new Uint8Array(content.slice(c.pos, c.move(4) + 4)));
+        // c.move(move);
+        console.log(size);
+        var start = c.pos;
+        switch (tag_id) {
+          case HWPTAG.PARA_HEADER:
+            //chars
+            let text = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true);
+            if (text & 0x80000000) {
+              //nchars
+              text &= 0x7fffffff;
+            }
+            data = {
+              name : "HWPTAG_PARA_HEADER",
+              tag_id : tag_id,
+              level : level,
+              size : size,
+              hex : buf2hex(content.slice(c.pos, c.pos + size)),
+              text : text,
+              control_mask: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
+              paragraph_shape_reference_value: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
+              paragraph_style_reference_value: new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
+              paragraph_dvide_type: new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
+              text_shapes: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint8(0),
+              range_tags: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
+              line_align: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
+              instance_id: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
+            }
+            console.log('text', text, data);
+            if(version >= 5032) { //변경추적 병합 문단 여부
+              data.section_merge = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
+            }
+            result.push({name : "PARA_HEADER", size : size});
+            var end = c.pos;
+            c.move(size - (end - start));
+            break;
+          case HWPTAG.PARA_TEXT:
+            result.push({name : "PARA_TEXT", size : size});
+            var end = c.pos;
+            c.move(size - (end - start));
+            break;
+          case HWPTAG.PARA_CHAR_SHAPE:
+            result.push({name : "PARA_CHAR_SHAPE", size : size});
+            var end = c.pos;
+            c.move(size - (end - start));
+            break;
+          case HWPTAG.PARA_LINE_SEG:
+            result.push({name : "PARA_LINE_SEG", size : size});
+            var end = c.pos;
+            c.move(size - (end - start));
+            break;
+          case HWPTAG.PARA_RANGE_TAG:
+            result.push({name : "PARA_RANGE_TAG", size : size});
+            var end = c.pos;
+            c.move(size - (end - start));
+            break;
+          case HWPTAG.CTRL_HEADER:
+            result.push({name : "CTRL_HEADER", size : size});
+            var end = c.pos;
+            c.move(size - (end - start));
+            break;
+          case HWPTAG.LIST_HEADER:
+            result.push({name : "LIST_HEADER", size : size});
+            var end = c.pos;
+            c.move(size - (end - start));
+            break;
+          case HWPTAG.PAGE_DEF:
+            result.push({name : "PAGE_DEF", size : size});
+            var end = c.pos;
+            c.move(size - (end - start));
+            break;
+          case HWPTAG.FOOTNOTE_SHAPE:
+            result.push({name : "FOOTNOTE_SHAPE", size : size});
+            var end = c.pos;
+            c.move(size - (end - start));
+            break;
+          case HWPTAG.PAGE_BORDER_FILL:
+            result.push({name : "PAGE_BORDER_FILL", size : size});
+            var end = c.pos;
+            c.move(size - (end - start));
+            break;
+          case HWPTAG.SHAPE_COMPONENT:
+            result.push({name : "SHAPE_COMPONENT", size : size});
+            var end = c.pos;
+            c.move(size - (end - start));
+            break;
+          case HWPTAG.TABLE:
+            result.push({name : "TABLE", size : size});
+            var end = c.pos;
+            c.move(size - (end - start));
+            break;
+          case HWPTAG.SHAPE_COMPONENT_LINE:
+            result.push({name : "SHAPE_COMPONENT_LINE", size : size});
+            var end = c.pos;
+            c.move(size - (end - start));
+            break;
+          case HWPTAG.SHAPE_COMPONENT_RECTANGLE:
+            result.push({name : "SHAPE_COMPONENT_RECTANGLE", size : size});
+            var end = c.pos;
+            c.move(size - (end - start));
+            break;
+          case HWPTAG.SHAPE_COMPONENT_ELLIPSE:
+            result.push({name : "SHAPE_COMPONENT_ELLIPSE", size : size});
+            var end = c.pos;
+            c.move(size - (end - start));
+            break;
+          case HWPTAG.SHAPE_COMPONENT_ARC:
+            result.push({name : "SHAPE_COMPONENT_ARC", size : size});
+            var end = c.pos;
+            c.move(size - (end - start));
+            break;
+          case HWPTAG.SHAPE_COMPONENT_POLYGON:
+            result.push({name : "SHAPE_COMPONENT_POLYGON", size : size});
+            var end = c.pos;
+            c.move(size - (end - start));
+            break;
+          case HWPTAG.SHAPE_COMPONENT_CURVE:
+            result.push({name : "SHAPE_COMPONENT_CURVE", size : size});
+            var end = c.pos;
+            c.move(size - (end - start));
+            break;
+          case HWPTAG.SHAPE_COMPONENT_OLE:
+            result.push({name : "SHAPE_COMPONENT_OLE", size : size});
+            var end = c.pos;
+            c.move(size - (end - start));
+            break;
+          case HWPTAG.SHAPE_COMPONENT_PICTURE:
+            result.push({name : "SHAPE_COMPONENT_PICTURE", size : size});
+            var end = c.pos;
+            c.move(size - (end - start));
+            break;
+          case HWPTAG.CTRL_DATA:
+            result.push({name : "CTRL_DATA", size : size});
+            var end = c.pos;
+            c.move(size - (end - start));
+            break;
+          case HWPTAG.EQEDIT:
+            result.push({name : "EQEDIT", size : size});
+            var end = c.pos;
+            c.move(size - (end - start));
+            break;
+          case HWPTAG.SHAPE_COMPONENT_TEXTART:
+            result.push({name : "SHAPE_COMPONENT_TEXTART", size : size});
+            var end = c.pos;
+            c.move(size - (end - start));
+            break;
+          case HWPTAG.FORM_OBJECT:
+            result.push({name : "FORM_OBJECT", size : size});
+            var end = c.pos;
+            c.move(size - (end - start));
+            break;
+          case HWPTAG.MEMO_SHAPE:
+            result.push({name : "MEMO_SHAPE", size : size});
+            var end = c.pos;
+            c.move(size - (end - start));
+            break;
+          case HWPTAG.MEMO_LIST:
+            result.push({name : "MEMO_LIST", size : size});
+            var end = c.pos;
+            c.move(size - (end - start));
+            break;
+          case HWPTAG.CHART_DATA:
+            result.push({name : "CHART_DATA", size : size});
+            var end = c.pos;
+            c.move(size - (end - start));
+            break;
+          case HWPTAG.VIDEO_DATA:
+            result.push({name : "VIDEO_DATA", size : size});
+            var end = c.pos;
+            c.move(size - (end - start));
+            break;
+          case HWPTAG.SHAPE_COMPONENT_UNKNOWN:
+            result.push({name : "SHAPE_COMPONENT_UNKNOWN", size : size});
+            var end = c.pos;
+            c.move(size - (end - start));
+            break;
+          default:
+            result.push({name : "미씽링크", size : size});
+            var end = c.pos;
+            c.move(size - (end - start));
+            break;
+        }
+      }
+    })
+    return result;
   }
 }
 
