@@ -4,7 +4,7 @@ export interface Content {
 }
 
 export interface XML {
-  version: string;
+  version: string | number;
   encoding: string;
   standalone: string;
 }
@@ -35,7 +35,7 @@ export interface Metadata {
 }
 
 export interface Meta {
-  "#text"?: string;
+  text?: string;
   name: string;
   content: string;
 }
@@ -53,33 +53,33 @@ export interface Itemref {
 /* Header */
 
 export interface Header {
-  xml: XML;
+  xml:  XML;
   head: Head;
 }
 
 export interface Head {
-  beginNum: BeginNum;
-  refList: RefList;
-  forbiddenWordList: ForbiddenWordList;
+  beginNum:           BeginNum;
+  refList:            RefList;
+  forbiddenWordList:  ForbiddenWordList;
   compatibleDocument: CompatibleDocument;
-  docOption: DocOption;
-  trackchageConfig: TrackchageConfig;
-  version: string;
-  secCnt: string;
+  docOption:          DocOption;
+  trackchageConfig:   TrackchageConfig;
+  version:            number;
+  secCnt:             number;
 }
 
 export interface BeginNum {
-  page: string;
-  footnote: string;
-  endnote: string;
-  pic: string;
-  tbl: string;
-  equation: string;
+  page:     number;
+  footnote: number;
+  endnote:  number;
+  pic:      number;
+  tbl:      number;
+  equation: number;
 }
 
 export interface CompatibleDocument {
   layoutCompatibility: string;
-  targetProgram: string;
+  targetProgram:       string;
 }
 
 export interface DocOption {
@@ -87,51 +87,51 @@ export interface DocOption {
 }
 
 export interface Linkinfo {
-  path: string;
-  pageInherit: string;
-  footnoteInherit: string;
+  path:            string;
+  pageInherit:     number;
+  footnoteInherit: number;
 }
 
 export interface ForbiddenWordList {
   forbiddenWord: string[];
-  itemCnt: string;
+  itemCnt:       number;
 }
 
 export interface RefList {
-  fontfaces: Fontfaces;
-  borderFills: BorderFills;
+  fontfaces:      Fontfaces;
+  borderFills:    BorderFills;
   charProperties: CharProperties;
-  tabProperties: TabProperties;
-  numberings: Numberings;
+  tabProperties:  TabProperties;
+  numberings:     Numberings;
   paraProperties: ParaProperties;
-  styles: Styles;
+  styles:         Styles;
 }
 
 export interface BorderFills {
   borderFill: BorderFill[];
-  itemCnt: string;
+  itemCnt:    number;
 }
 
 export interface BorderFill {
-  slash: Slash;
-  backSlash: Slash;
-  leftBorder: BottomBorder;
-  rightBorder: BottomBorder;
-  topBorder: BottomBorder;
-  bottomBorder: BottomBorder;
-  diagonal: BottomBorder;
-  id: string;
-  threeD: string;
-  shadow: string;
-  centerLine: CenterLine;
-  breakCellSeparateLine: string;
-  fillBrush?: FillBrush;
+  slash:                 Slash;
+  backSlash:             Slash;
+  leftBorder:            BottomBorder;
+  rightBorder:           BottomBorder;
+  topBorder:             BottomBorder;
+  bottomBorder:          BottomBorder;
+  diagonal:              BottomBorder;
+  id:                    number;
+  threeD:                number;
+  shadow:                number;
+  centerLine:            CenterLine;
+  breakCellSeparateLine: number;
+  fillBrush?:            FillBrush;
 }
 
 export interface Slash {
-  type: CenterLine;
-  crooked: string;
-  isCounter: string;
+  type:      CenterLine;
+  crooked:   number;
+  isCounter: number;
 }
 
 export enum CenterLine {
@@ -140,9 +140,18 @@ export enum CenterLine {
 }
 
 export interface BottomBorder {
-  type: CenterLine;
-  width: string;
-  color: string;
+  type:  CenterLine;
+  width: Width;
+  color: Color;
+}
+
+export enum Color {
+  The000000 = "#000000",
+}
+
+export enum Width {
+  The012Mm = "0.12 mm",
+  The01Mm = "0.1 mm",
 }
 
 export interface FillBrush {
@@ -150,72 +159,78 @@ export interface FillBrush {
 }
 
 export interface WinBrush {
-  faceColor: string;
+  faceColor:  string;
   hatchColor: string;
-  alpha: string;
+  alpha:      number;
 }
 
 export interface CharProperties {
-  charPR: CharPR[];
-  itemCnt: string;
+  charPR:  CharPR[];
+  itemCnt: number;
 }
 
 export interface CharPR {
-  fontRef: FontRef;
-  ratio: FontRef;
-  spacing: FontRef;
-  relSz: FontRef;
-  offset: FontRef;
-  strikeout: Strikeout;
-  id: string;
-  height: string;
-  textColor: string;
-  shadeColor: string;
-  useFontSpace: string;
-  useKerning: string;
-  symMark: CenterLine;
-  borderFillIDRef: string;
+  fontRef:         FontRef;
+  ratio:           FontRef;
+  spacing:         FontRef;
+  relSz:           FontRef;
+  offset:          FontRef;
+  strikeout:       Strikeout;
+  id:              number;
+  height:          number;
+  textColor:       string;
+  shadeColor:      string;
+  useFontSpace:    number;
+  useKerning:      number;
+  symMark:         CenterLine;
+  borderFillIDRef: number;
 }
 
 export interface FontRef {
-  hangul: string;
-  latin: string;
-  hanja: string;
-  japanese: string;
-  other: string;
-  symbol: string;
-  user: string;
+  hangul:   number;
+  latin:    number;
+  hanja:    number;
+  japanese: number;
+  other:    number;
+  symbol:   number;
+  user:     number;
 }
 
 export interface Strikeout {
   shape: CenterLine;
-  color: string;
+  color: Color;
 }
 
 export interface Fontfaces {
   fontface: Fontface[];
-  itemCnt: string;
+  itemCnt:  number;
 }
 
 export interface Fontface {
-  font: Font[];
-  lang: string;
-  fontCnt: string;
+  font:    Font[];
+  lang:    "HANGUL" | "LATIN" | "HANJA" | "JAPANESE" | "OTHER" | "SYMBOL" | "USER";
+  fontCnt: number;
 }
 
 export interface Font {
-  id: string;
-  face: string;
-  type: SubstFontType;
-  isEmbedded: string;
+  id:         number;
+  face:       Face;
+  type:       SubstFontType;
+  isEmbedded: number;
   substFont?: SubstFont;
 }
 
+export enum Face {
+  고양덕양Eb = "고양덕양 EB",
+  함초롬돋움 = "함초롬돋움",
+  함초롬바탕 = "함초롬바탕",
+}
+
 export interface SubstFont {
-  face: string;
-  type: SubstFontType;
-  isEmbedded: string;
-  binaryItemIDRef: string;
+  face:            Face;
+  type:            SubstFontType;
+  isEmbedded:      number;
+  binaryItemIDRef: null;
 }
 
 export enum SubstFontType {
@@ -224,28 +239,28 @@ export enum SubstFontType {
 
 export interface Numberings {
   numbering: Numbering;
-  itemCnt: string;
+  itemCnt:   number;
 }
 
 export interface Numbering {
   paraHead: ParaHead[];
-  id: string;
-  start: string;
+  id:       number;
+  start:    number;
 }
 
 export interface ParaHead {
-  text?: string;
-  start: string;
-  level: string;
-  align: AlignEnum;
-  useInstWidth: string;
-  autoIndent: string;
-  widthAdjust: string;
+  text?:          string;
+  start:          number;
+  level:          number;
+  align:          AlignEnum;
+  useInstWidth:   number;
+  autoIndent:     number;
+  widthAdjust:    number;
   textOffsetType: TextOffsetTypeEnum;
-  textOffset: string;
-  numFormat: string;
-  charPRIDRef: string;
-  checkable: string;
+  textOffset:     number;
+  numFormat:      string;
+  charPRIDRef:    number;
+  checkable:      number;
 }
 
 export enum AlignEnum {
@@ -258,29 +273,29 @@ export enum TextOffsetTypeEnum {
 }
 
 export interface ParaProperties {
-  paraPR: ParaPR[];
-  itemCnt: string;
+  paraPR:  ParaPR[];
+  itemCnt: number;
 }
 
 export interface ParaPR {
-  align: AlignClass;
-  heading?: Heading;
-  breakSetting: BreakSetting;
-  autoSpacing: AutoSpacing;
-  switch: SwitchElement[] | PurpleSwitch;
-  border: Border;
-  id: string;
-  tabPRIDRef: string;
-  condense: string;
-  fontLineHeight: string;
-  snapToGrid: string;
-  suppressLineNumbers: string;
-  checked: string;
+  align:               AlignClass;
+  heading?:            Heading;
+  breakSetting:        BreakSetting;
+  autoSpacing:         AutoSpacing;
+  switch:              SwitchElement[] | PurpleSwitch;
+  border:              Border;
+  id:                  number;
+  tabPRIDRef:          number;
+  condense:            number;
+  fontLineHeight:      number;
+  snapToGrid:          number;
+  suppressLineNumbers: number;
+  checked:             number;
 }
 
 export interface AlignClass {
   horizontal: AlignEnum;
-  vertical: Vertical;
+  vertical:   Vertical;
 }
 
 export enum Vertical {
@@ -288,28 +303,28 @@ export enum Vertical {
 }
 
 export interface AutoSpacing {
-  eAsianEng: string;
-  eAsianNum: string;
+  eAsianEng: number;
+  eAsianNum: number;
 }
 
 export interface Border {
-  borderFillIDRef: string;
-  offsetLeft: string;
-  offsetRight: string;
-  offsetTop: string;
-  offsetBottom: string;
-  connect: string;
-  ignoreMargin: string;
+  borderFillIDRef: number;
+  offsetLeft:      number;
+  offsetRight:     number;
+  offsetTop:       number;
+  offsetBottom:    number;
+  connect:         number;
+  ignoreMargin:    number;
 }
 
 export interface BreakSetting {
-  breakLatinWord: BreakLatinWord;
+  breakLatinWord:    BreakLatinWord;
   breakNonLatinWord: BreakLatinWord;
-  widowOrphan: string;
-  keepWithNext: string;
-  keepLines: string;
-  pageBreakBefore: string;
-  lineWrap: LineWrap;
+  widowOrphan:       number;
+  keepWithNext:      number;
+  keepLines:         number;
+  pageBreakBefore:   number;
+  lineWrap:          LineWrap;
 }
 
 export enum BreakLatinWord {
@@ -322,9 +337,9 @@ export enum LineWrap {
 }
 
 export interface Heading {
-  type: HeadingType;
-  idRef: string;
-  level: string;
+  type:  HeadingType;
+  idRef: number;
+  level: number;
 }
 
 export enum HeadingType {
@@ -333,21 +348,21 @@ export enum HeadingType {
 }
 
 export interface SwitchElement {
-  case: Case;
+  case:    Case;
   default: Case;
 }
 
 export interface Case {
-  heading?: Heading;
+  heading?:           Heading;
   requiredNamespace?: string;
-  margin?: Margin;
-  lineSpacing?: LineSpacing;
+  margin?:            Margin;
+  lineSpacing?:       LineSpacing;
 }
 
 export interface LineSpacing {
-  type: TextOffsetTypeEnum;
-  value: string;
-  unit: Unit;
+  type:  TextOffsetTypeEnum;
+  value: number;
+  unit:  Unit;
 }
 
 export enum Unit {
@@ -356,42 +371,42 @@ export enum Unit {
 
 export interface Margin {
   intent: Intent;
-  left: Intent;
-  right: Intent;
-  prev: Intent;
-  next: Intent;
+  left:   Intent;
+  right:  Intent;
+  prev:   Intent;
+  next:   Intent;
 }
 
 export interface Intent {
-  value: string;
-  unit: Unit;
+  value: number;
+  unit:  Unit;
 }
 
 export interface PurpleSwitch {
-  case: Case;
+  case:    Case;
   default: Default;
 }
 
 export interface Default {
-  margin: Margin;
+  margin:      Margin;
   lineSpacing: LineSpacing;
 }
 
 export interface Styles {
-  style: Style[];
-  itemCnt: string;
+  style:   Style[];
+  itemCnt: number;
 }
 
 export interface Style {
-  id: string;
-  type: StyleType;
-  name: string;
-  engName: string;
-  paraPRIDRef: string;
-  charPRIDRef: string;
-  nextStyleIDRef: string;
-  langID: string;
-  lockForm: string;
+  id:             number;
+  type:           StyleType;
+  name:           string;
+  engName:        string;
+  paraPRIDRef:    number;
+  charPRIDRef:    number;
+  nextStyleIDRef: number;
+  langID:         number;
+  lockForm:       number;
 }
 
 export enum StyleType {
@@ -400,34 +415,16 @@ export enum StyleType {
 }
 
 export interface TabProperties {
-  tabPR: TabPR[];
-  itemCnt: string;
+  tabPR:   TabPR[];
+  itemCnt: number;
 }
 
 export interface TabPR {
-  id: string;
-  autoTabLeft: string;
-  autoTabRight: string;
+  id:           number;
+  autoTabLeft:  number;
+  autoTabRight: number;
 }
 
 export interface TrackchageConfig {
-  flags: string;
-}
-
-//version
-export interface Version {
-  xml: XML;
-  hcfVersion: HCFVersion;
-}
-
-export interface HCFVersion {
-  tagetApplication: string;
-  major: string;
-  minor: string;
-  micro: string;
-  buildNumber: string;
-  os: string;
-  xmlVersion: string;
-  application: string;
-  appVersion: string;
+  flags: number;
 }

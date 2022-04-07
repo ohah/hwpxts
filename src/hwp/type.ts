@@ -1,4 +1,5 @@
 export enum HWPTAG {
+  //DOC INFO
   BEGIN = 0x10,
   /**
    * 문서 속성(표 14 참조)
@@ -25,13 +26,13 @@ export enum HWPTAG {
    * */
   FACE_NAME = HWPTAG.BEGIN + 3,
   /**
-   * 테두리/배경(표 23 참조) 
+   * 테두리/배경(표 23 참조)
    * @length 가변
    * @level 1
    * */
   BORDER_FILL = HWPTAG.BEGIN + 4,
   /**
-   * 글자 모양(표 33 참조) 
+   * 글자 모양(표 33 참조)
    * @length 72
    * @level 1
    * */
@@ -111,7 +112,7 @@ export enum HWPTAG {
   FORBIDDEN_CHAR = HWPTAG.BEGIN + 78,
   /**
    * 변경 추적 내용 및 모양
-   * @length 가변
+   * @length 1032
    * @level 1
    * */
   TRACK_CHANGE = HWPTAG.BEGIN + 80,
@@ -121,11 +122,6 @@ export enum HWPTAG {
    * @level 1
    * */
   TRACK_CHANGE_AUTHOR = HWPTAG.BEGIN + 81,
-  /**
-   * 바이너리 데이터(표 17 참조) 
-   * @length 가변
-   * @level 1
-   * */
 
   //SECTION
 
@@ -315,4 +311,77 @@ export enum HWPTAG {
    * @level 3
    * */
   SHAPE_COMPONENT_UNKNOWN = HWPTAG.BEGIN + 99,
+}
+
+/**
+ * 문서 이력 관리 레코드 정보
+ * DocInfo에 새로 추가됨(5.017 버전 이후)
+ */
+export enum HISTORY {
+  /**
+   * 히스토리 아이템 정보 시작
+   * WORD flag
+   * UINT option
+   */
+  RECORD_TYPE_STAG = 0x10,
+  /**
+   * 버전 존재
+   */
+  INFO_FLAG_VERSION = 0x01,
+  /**
+   * 날짜 존재
+   */
+  INFO_FLAG_DATE = 0x02,
+  /**
+   * 작성자 존재
+   */
+  INFO_FLAG_WRITER = 0x04,
+  /**
+   * 설명 존재
+   */
+  INFO_FLAG_DESCRIPTION = 0x08,
+  /**
+   * Diff Data 존재
+   */
+  INFO_FLAG_DIFFDATA = 0x010,
+  /**
+   * 최근 문서 존재(기록하지 않음, 필수)
+   */
+  INFO_FLAG_LASTDOCDATA = undefined,
+  /**
+   * 현재 히스토리 아이템 Lock 상태
+   */
+  INFO_FLAG_LOCK = 0x40,
+  /**
+   * 문서 저장 시 자동 저장
+   */
+  HWPVERSION_AUTOSAVE = 0x00000001,
+  /**
+   * 히스토리 아이템 정보 끝
+   */
+  RECORD_TYPE_ETAG = 0x11,
+  /**
+   * 히스토리 아이템 버전
+   */
+  RECORD_TYPE_VERSION = 0x20,
+  /**
+   * 히스토리 날짜
+   */
+  RECORD_TYPE_DATE = 0x21,
+  /**
+   * 히스토리 작성자
+   */
+  RECORD_TYPE_WRITER = 0x22,
+  /**
+   * 히스토리 설명
+   */
+  RECORD_TYPE_DESCRIPTION = 0x23,
+  /**
+   * 비교정보
+   */
+  RECORD_TYPE_DIFFDATA = 0x30,
+  /**
+   * 가장 마지막 최근 문서
+   */
+  RECORD_TYPE_LASTDOCDATA = 0x31,
 }

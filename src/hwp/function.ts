@@ -1,3 +1,4 @@
+import CFB from "cfb";
 /**
  * 바이너리 레코드 읽기
  * @param data 
@@ -68,4 +69,13 @@ export const RGB = (value) => {
     Bit(value, 8, 15),
     Bit(value, 16, 24),
   ]
+}
+
+/**
+ * Uint8Array -> hex
+ * @param buffer 
+ * @returns hex code
+ */
+export const buf2hex = (buffer:Uint8Array | CFB.CFB$Blob) => {
+  return [...new Uint8Array(buffer)].map(x => x.toString(16).padStart(2, '0')).join(' ').toUpperCase();
 }

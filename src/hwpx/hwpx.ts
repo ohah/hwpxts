@@ -6,11 +6,14 @@ const options: Partial<X2jOptions> = {
   ignoreAttributes: false,
   removeNSPrefix: true,
   attributeNamePrefix: "",
-  allowBooleanAttributes: true,
+  allowBooleanAttributes: false,
+  attributesGroupName : false,
+  textNodeName : "text",
   numberParseOptions : {
-    leadingZeros : true,
-    hex : true,
+    leadingZeros : false,
+    hex : false,
   },
+  parseAttributeValue : false,
 };
 export class Hwpx extends JSZip {
   #filepath: string;
@@ -74,7 +77,16 @@ export class Hwpx extends JSZip {
       try {
         if (this.zip.files["Contents/header.xml"]) {
           const json = new XMLParser(options).parse(await this.zip.files["Contents/header.xml"].async("string"))
-          document.body.innerHTML = JSON.stringify(json, null, 2); // stringify with tabs inserted at each level
+          const test = JSON.parse(JSON.stringify(json), (key, value)=> {
+            if(Number.isNaN(Number(value)) === false) {
+              return parseFloat(value)
+              // return value;
+            } else {
+              return value;
+            }
+          });
+          console.log('test', test);
+          document.body.innerHTML = JSON.stringify(test, null, 2); // stringify with tabs inserted at each level
           // console.log(json);
           document.body.style.whiteSpace = "pre-wrap";
           // Object.entries(json).map(row=>{
