@@ -104,6 +104,7 @@ export class Hwp {
       this.#hwp = HwpReader(this.#cfb);
       console.log('reader', this.#hwp);
       console.log('hwpversion', this.version);
+      console.log('docinfo', this.docInfo);
       console.log('section', this.section);
     })();
   }
@@ -122,7 +123,7 @@ export class Hwp {
     const { content } = this.#hwp.DocInfo;
     const c = new Cursor(0);
     // console.log('tq')
-    const test = [];
+    const result = [];
     let data;
     while (c.pos < content.length) {
       const { tag_id, level, size, move } = readRecord(new Uint8Array(content.slice(c.pos, c.move(4) + 4)));
@@ -132,6 +133,7 @@ export class Hwp {
       // c.move(size);
       switch (tag_id) {
         case HWPTAG.DOCUMENT_PROPERTIES:
+          result.push({name : "DOCUMENT_PROPERTIES", size : size});
           data = {
             name: "HWPTAG_DOCUMENT_PROPERTIES",
             tag_id: tag_id,
@@ -152,7 +154,7 @@ export class Hwp {
             paragraph_location: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
           };
           // result.push(data);
-          console.log("HWPTAG_DOCUMENT_PROPERTIES", data);
+          // console.log("HWPTAG_DOCUMENT_PROPERTIES", data);
           this.#hwpx.header.head.beginNum.page = data.page;
           this.#hwpx.header.head.beginNum.footnote = data.footnote;
           this.#hwpx.header.head.beginNum.endnote = data.endnote;
@@ -163,7 +165,7 @@ export class Hwp {
           c.move(size - (end - start));
           break;
         case HWPTAG.ID_MAPPINGS:
-          content.slice(c.pos, c.pos + size);
+          result.push({name : "ID_MAPPINGS", size : size});
           data = {
             name: "HWPTAG_ID_MAPPINGS",
             tag_id: tag_id,
@@ -186,13 +188,27 @@ export class Hwp {
             shape_paragraph: new DataView( new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0 ).getInt32(0, true), //문단 모양
             style: new DataView( new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true), //스타일
           };
+          if(this.version >= 5021) {
+            data.style_shape = new DataView( new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true); // 메모 모양
+          }
+          if(this.version >= 5032) {
+            data.track_change = new DataView( new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true); // 변경 추적
+            data.track_change_author = new DataView( new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true); // 변경 추적 사용자
+          }
           // this.header.head.
-          // console.log('??', data)
           var end = c.pos;
+          console.warn('??', data, this.version)
           c.move(size - (end - start));
           // this.header.head.
           break;
+        case HWPTAG.BIN_DATA:
+          result.push({name : "BIN_DATA", size : size});
+          var end = c.pos;
+          // console.log('FONT_NAME',data)
+          c.move(size - (end - start));
+          break;
         case HWPTAG.FACE_NAME:
+          result.push({name : "FACE_NAME", size : size});
           data = {
             font: {
               type: new DataView( new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0) === 1 ? "HTF" : "TTF",
@@ -201,48 +217,118 @@ export class Hwp {
           const length = new DataView( new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0);
           // this.header.head.refList.fontfaces.fontface.push()
           this.#hwpx.header.head.refList.fontfaces.itemCnt += 1;
-          test.push(data);
+          var end = c.pos;
+          // console.log('FONT_NAME',data)
+          c.move(size - (end - start));
+          break;
+        case HWPTAG.BORDER_FILL:
+          result.push({name : "BORDER_FILL", size : size});
+          var end = c.pos;
+          // console.log('FONT_NAME',data)
+          c.move(size - (end - start));
+          break;
+        case HWPTAG.CHAR_SHAPE:
+          result.push({name : "CHAR_SHAPE", size : size});
+          var end = c.pos;
+          // console.log('FONT_NAME',data)
+          c.move(size - (end - start));
+          break;
+        case HWPTAG.TAB_DEF:
+          result.push({name : "TAB_DEF", size : size});
+          var end = c.pos;
+          // console.log('FONT_NAME',data)
+          c.move(size - (end - start));
+          break;
+        case HWPTAG.NUMBERING:
+          result.push({name : "NUMBERING", size : size});
+          var end = c.pos;
+          // console.log('FONT_NAME',data)
+          c.move(size - (end - start));
+          break;
+        case HWPTAG.BULLET:
+          result.push({name : "BULLET", size : size});
+          var end = c.pos;
+          // console.log('FONT_NAME',data)
+          c.move(size - (end - start));
+          break;
+        case HWPTAG.PARA_SHAPE:
+          result.push({name : "PARA_SHAPE", size : size});
+          var end = c.pos;
+          // console.log('FONT_NAME',data)
+          c.move(size - (end - start));
+          break;
+        case HWPTAG.STYLE:
+          result.push({name : "STYLE", size : size});
+          var end = c.pos;
+          // console.log('FONT_NAME',data)
+          c.move(size - (end - start));
+          break;
+        case HWPTAG.MEMO_SHAPE:
+          result.push({name : "MEMO_SHAPE", size : size});
+          var end = c.pos;
+          // console.log('FONT_NAME',data)
+          c.move(size - (end - start));
+          break;
+        case HWPTAG.TRACK_CHANGE_AUTHOR :
+          result.push({name : "TRACK_CHANGE_AUTHOR  ", size : size});
+          var end = c.pos;
+          // console.log('FONT_NAME',data)
+          c.move(size - (end - start));
+          break;
+        case HWPTAG.TRACK_CHANGE :
+          result.push({name : "TRACK_CHANGE  ", size : size});
+          var end = c.pos;
+          // console.log('FONT_NAME',data)
+          c.move(size - (end - start));
+          break;
+        case HWPTAG.DOC_DATA :
+          result.push({name : "DOC_DATA  ", size : size});
+          var end = c.pos;
+          // console.log('FONT_NAME',data)
+          c.move(size - (end - start));
+          break;
+        case HWPTAG.FORBIDDEN_CHAR:
+          result.push({name : "FORBIDDEN_CHAR", size : size});
+          var end = c.pos;
+          // console.log('FONT_NAME',data)
+          c.move(size - (end - start));
+          break;
+        case HWPTAG.COMPATIBLE_DOCUMENT:
+          result.push({name : "COMPATIBLE_DOCUMENT", size : size});
+          var end = c.pos;
+          // console.log('FONT_NAME',data)
+          c.move(size - (end - start));
+          break;
+        case HWPTAG.LAYOUT_COMPATIBILITY:
+          result.push({name : "LAYOUT_COMPATIBILITY", size : size});
+          var end = c.pos;
+          // console.log('FONT_NAME',data)
+          c.move(size - (end - start));
+          break;
+        case HWPTAG.DISTRIBUTE_DOC_DATA:
+          result.push({name : "DISTRIBUTE_DOC_DATA", size : size});
           var end = c.pos;
           // console.log('FONT_NAME',data)
           c.move(size - (end - start));
           break;
         case HWPTAG.TRACKCHANGE:
-          data = {
-            name: "HWPTAG_TRACKCHANGE",
-            tag_id: tag_id,
-            level: level,
-            size: size,
-            hex: buf2hex(content.slice(c.pos, c.pos + size)),
-          };
-          console.log("size", size);
-          c.move(size);
-          // result.push(data);
-          break;
-        case HWPTAG.TRACK_CHANGE_AUTHOR:
-          data = {
-            name: "HWPTAG_TRACK_CHANGE_AUTHOR",
-            tag_id: tag_id,
-            level: level,
-            size: size,
-            hex: buf2hex(content.slice(c.pos, c.pos + size)),
-          };
-          console.log("TRACK_CHANGE_AUTHOR", size);
-          c.move(size);
-          // result.push(data);
+          result.push({name : "TRACKCHANGE", size : size});
+          var end = c.pos;
+          // console.log('FONT_NAME',data)
+          c.move(size - (end - start));
           break;
         default:
           var t = Object.keys(HWPTAG).filter((key) => !isNaN(Number(HWPTAG[key])));
           var v = Object.values(HWPTAG).filter((key) => isNaN(Number(HWPTAG[key])));
           const Idx = v.findIndex((v) => v === tag_id);
-          console.log("모르는것들", t[Idx]);
+          console.log("모르는것들", tag_id);
           var end = c.pos;
           c.move(size - (end - start));
           break;
       }
     }
-    console.log("test", test);
     // return this.hwp.find((entry)=>entry.name === "DocInfo").content;
-    return "tq";
+    return result;
   }
 
   get section() {

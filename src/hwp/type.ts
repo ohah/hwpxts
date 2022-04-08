@@ -73,14 +73,14 @@ export enum HWPTAG {
    * */
   STYLE = HWPTAG.BEGIN + 10,
   /**
-   * 메모 모양
-   * @length 22
-   * @level 1
+   * 문서 임의의 데이터(표 49 참조)
+   * @length 가변
+   * @level 0
    * */
   DOC_DATA = HWPTAG.BEGIN + 11,
   /**
-   * 문서 임의의 데이터(표 49 참조)
-   * @length 가변
+   * 배포용 문서
+   * @length 256
    * @level 0
    * */
   DISTRIBUTE_DOC_DATA = HWPTAG.BEGIN + 12,
