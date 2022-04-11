@@ -3,10 +3,10 @@ import { Hwpx } from "./hwpx/hwpx";
 import { Hwp } from "./hwp/hwp";
 var zip = new JSzip();
 (async () => {
-  const hwp = new Hwp(`./hwp/text-2.hwp`);
+  const hwp = new Hwp(`./hwp/text.hwp`);
   // return false;
   const hwpx = new Hwpx();
-  hwpx.filepath = "./hwpx/text-2.hwpx";
+  hwpx.filepath = "./hwpx/text.hwpx";
   // console.log('hwpx', hwpx);
   // console.log('hwpx', hwpx.hwpx);
   // console.log("test");

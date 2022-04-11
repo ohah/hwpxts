@@ -28,7 +28,7 @@ export const readRecord = (data: Uint8Array) => {
  * @param position 
  * @returns 
  */
-export const Flags = (bits, position) => {
+export const Flags = (bits:number, position:number) => {
   const mask = 1 << position;
   return (bits & mask) === mask;
 }
@@ -45,13 +45,13 @@ export const BinaryRecord = (value) => {
   return { type: Type, compress: Compress, status: Status }
 }
 /**
- * 
- * @param mask 
- * @param start 
- * @param end 
+ * 비트연산 값 가져오기
+ * @param mask(uint8Array)
+ * @param start(start)
+ * @param end(end)
  * @returns 
  */
-export const Bit = (mask, start, end) => {
+export const Bit = (mask:number, start:number, end:number) => {
   const target = mask >> start
   let temp = 0
   for (let index = 0; index <= (end - start); index += 1) {
@@ -61,11 +61,11 @@ export const Bit = (mask, start, end) => {
   return target & temp;
 }
 /**
- * 
+ * 색깔 값을 가져옴
  * @param value 
  * @returns 
  */
-export const RGB = (value) => {
+export const RGB = (value:number) => {
   return [
     Bit(value, 0, 7),
     Bit(value, 8, 15),
@@ -82,7 +82,7 @@ export const buf2hex = (buffer: HwpBlob) => {
   return [...new Uint8Array(buffer)].map(x => x.toString(16).padStart(2, '0')).join(' ').toUpperCase();
 }
 /**
- * 
+ * hwp 파일 헤더값 가져오기
  * @param content 
  * @returns 
  */
@@ -99,7 +99,7 @@ export const HwpHeader = (content: HwpBlob) => {
 }
 
 /**
- * 
+ * hwp 파일을 읽어옴.
  * @param cfb 
  * @returns 
  */
@@ -236,7 +236,7 @@ export const CTRL_HEADER = (content:HwpBlob) => {
       // console.log('secd', tag_id, level, size, move);   
       break;
     case CTRL_ID.cold:
-      console.log('define', COLD_DEFINE(content.slice(4, content.length )));
+      COLD_DEFINE(content.slice(4, content.length ));
       break;
   
     default:
@@ -447,6 +447,12 @@ const SECTION_DEFINE = (content:HwpBlob) => {
   return result;
 };
 
+/**
+ * 문단 정의
+ * @param content 
+ * @returns 
+ * @missing_link 
+ */
 export const COLD_DEFINE = (content: HwpBlob) => {
   console.log('cold_size', content, content.length);
   const c = new Cursor(0);
@@ -473,6 +479,10 @@ export const COLD_DEFINE = (content: HwpBlob) => {
     lineWeight: new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
     /** 단 구분선 색상 */
     lineColor: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
+  }
+  if(data.count > 1) {
+    /** 단 너비가 동일하지 않으면, 단의 개수만큼 단의 폭(2 * cnt) */
+    data.wordSize = new DataView(new Uint8Array(content.slice(c.pos, c.move(2 * data.count))).buffer, 0).getInt16(0, true);
   }
   console.log('cold define', data);
   // const attr2 = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);

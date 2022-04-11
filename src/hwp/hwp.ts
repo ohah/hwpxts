@@ -347,7 +347,7 @@ export class Hwp {
         var start = c.pos;
         switch (tag_id) {
           case HWPTAG.CTRL_HEADER:
-            result.push({tag_id : tag_id, name : "CTRL_HEADER", size : size, content : CTRL_HEADER(content.slice(c.pos, c.pos + size))});
+            result.push({tag_id : tag_id, level : level, name : "CTRL_HEADER", size : size, content : CTRL_HEADER(content.slice(c.pos, c.pos + size))});
             // const tt = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true);
             const ctrlId = new TextDecoder("utf8").decode(content.slice(c.pos, c.move(4)).reverse());
             // console.log("CTRL_HEADER", ctrlId);
@@ -357,13 +357,13 @@ export class Hwp {
             c.move(size - (end - start));
             break;
           case HWPTAG.PARA_HEADER:
-            result.push({tag_id : tag_id, name : "PARA_HEADER", size : size, content : PARA_HEADER(content.slice(c.pos, c.pos + size))});
+            result.push({tag_id : tag_id, level : level, name : "PARA_HEADER", size : size, content : PARA_HEADER(content.slice(c.pos, c.pos + size))});
             var end = c.pos;
             c.move(size - (end - start));
             break;
           case HWPTAG.PARA_TEXT:
-            result.push({tag_id : tag_id, name : "PARA_TEXT", size : size, content : PARA_TEXT(content.slice(c.pos, c.pos + size), ctrl_id)});
-            // result.push({tag_id : tag_id, name : "PARA_TEXT", size : size});
+            result.push({tag_id : tag_id, level : level, name : "PARA_TEXT", size : size, content : PARA_TEXT(content.slice(c.pos, c.pos + size), ctrl_id)});
+            // result.push({tag_id : tag_id, level : level, name : "PARA_TEXT", size : size});
             // console.log('text', PARA_TEXT(content.slice(c.pos, c.pos + size), ctrl_id))
             // const temp = new TextDecoder("utf8").decode(content);
             // console.log('temp', temp);
@@ -371,142 +371,142 @@ export class Hwp {
             c.move(size - (end - start));
             break;
           case HWPTAG.PARA_CHAR_SHAPE:
-            result.push({tag_id : tag_id, name : "PARA_CHAR_SHAPE", size : size});
+            result.push({tag_id : tag_id, level : level, name : "PARA_CHAR_SHAPE", size : size});
             var end = c.pos;
             c.move(size - (end - start));
             break;
           case HWPTAG.PARA_LINE_SEG:
-            result.push({tag_id : tag_id, name : "PARA_LINE_SEG", size : size, content : LINE_SEG(content.slice(c.pos, c.pos + size))});
+            result.push({tag_id : tag_id, level : level, name : "PARA_LINE_SEG", size : size, content : LINE_SEG(content.slice(c.pos, c.pos + size))});
             var end = c.pos;
             c.move(size - (end - start));
             break;
           case HWPTAG.PARA_RANGE_TAG:
-            result.push({tag_id : tag_id, name : "PARA_RANGE_TAG", size : size});
+            result.push({tag_id : tag_id, level : level, name : "PARA_RANGE_TAG", size : size});
             var end = c.pos;
             c.move(size - (end - start));
             break;
           case HWPTAG.CTRL_HEADER:
-            result.push({tag_id : tag_id, name : "CTRL_HEADER", size : size});
+            result.push({tag_id : tag_id, level : level, name : "CTRL_HEADER", size : size});
             var end = c.pos;
             c.move(size - (end - start));
             break;
           case HWPTAG.LIST_HEADER:
-            result.push({tag_id : tag_id, name : "LIST_HEADER", size : size});
+            result.push({tag_id : tag_id, level : level, name : "LIST_HEADER", size : size});
             var end = c.pos;
             c.move(size - (end - start));
             break;
           case HWPTAG.PAGE_DEF:
-            result.push({tag_id : tag_id, name : "PAGE_DEF", size : size});
+            result.push({tag_id : tag_id, level : level, name : "PAGE_DEF", size : size});
             var end = c.pos;
             c.move(size - (end - start));
             break;
           case HWPTAG.FOOTNOTE_SHAPE:
-            result.push({tag_id : tag_id, name : "FOOTNOTE_SHAPE", size : size});
+            result.push({tag_id : tag_id, level : level, name : "FOOTNOTE_SHAPE", size : size});
             var end = c.pos;
             c.move(size - (end - start));
             break;
           case HWPTAG.PAGE_BORDER_FILL:
-            result.push({tag_id : tag_id, name : "PAGE_BORDER_FILL", size : size});
+            result.push({tag_id : tag_id, level : level, name : "PAGE_BORDER_FILL", size : size});
             var end = c.pos;
             c.move(size - (end - start));
             break;
           case HWPTAG.SHAPE_COMPONENT:
-            result.push({tag_id : tag_id, name : "SHAPE_COMPONENT", size : size});
+            result.push({tag_id : tag_id, level : level, name : "SHAPE_COMPONENT", size : size});
             var end = c.pos;
             c.move(size - (end - start));
             break;
           case HWPTAG.TABLE:
-            result.push({tag_id : tag_id, name : "TABLE", size : size});
+            result.push({tag_id : tag_id, level : level, name : "TABLE", size : size});
             var end = c.pos;
             c.move(size - (end - start));
             break;
           case HWPTAG.SHAPE_COMPONENT_LINE:
-            result.push({tag_id : tag_id, name : "SHAPE_COMPONENT_LINE", size : size});
+            result.push({tag_id : tag_id, level : level, name : "SHAPE_COMPONENT_LINE", size : size});
             var end = c.pos;
             c.move(size - (end - start));
             break;
           case HWPTAG.SHAPE_COMPONENT_RECTANGLE:
-            result.push({tag_id : tag_id, name : "SHAPE_COMPONENT_RECTANGLE", size : size});
+            result.push({tag_id : tag_id, level : level, name : "SHAPE_COMPONENT_RECTANGLE", size : size});
             var end = c.pos;
             c.move(size - (end - start));
             break;
           case HWPTAG.SHAPE_COMPONENT_ELLIPSE:
-            result.push({tag_id : tag_id, name : "SHAPE_COMPONENT_ELLIPSE", size : size});
+            result.push({tag_id : tag_id, level : level, name : "SHAPE_COMPONENT_ELLIPSE", size : size});
             var end = c.pos;
             c.move(size - (end - start));
             break;
           case HWPTAG.SHAPE_COMPONENT_ARC:
-            result.push({tag_id : tag_id, name : "SHAPE_COMPONENT_ARC", size : size});
+            result.push({tag_id : tag_id, level : level, name : "SHAPE_COMPONENT_ARC", size : size});
             var end = c.pos;
             c.move(size - (end - start));
             break;
           case HWPTAG.SHAPE_COMPONENT_POLYGON:
-            result.push({tag_id : tag_id, name : "SHAPE_COMPONENT_POLYGON", size : size});
+            result.push({tag_id : tag_id, level : level, name : "SHAPE_COMPONENT_POLYGON", size : size});
             var end = c.pos;
             c.move(size - (end - start));
             break;
           case HWPTAG.SHAPE_COMPONENT_CURVE:
-            result.push({tag_id : tag_id, name : "SHAPE_COMPONENT_CURVE", size : size});
+            result.push({tag_id : tag_id, level : level, name : "SHAPE_COMPONENT_CURVE", size : size});
             var end = c.pos;
             c.move(size - (end - start));
             break;
           case HWPTAG.SHAPE_COMPONENT_OLE:
-            result.push({tag_id : tag_id, name : "SHAPE_COMPONENT_OLE", size : size});
+            result.push({tag_id : tag_id, level : level, name : "SHAPE_COMPONENT_OLE", size : size});
             var end = c.pos;
             c.move(size - (end - start));
             break;
           case HWPTAG.SHAPE_COMPONENT_PICTURE:
-            result.push({tag_id : tag_id, name : "SHAPE_COMPONENT_PICTURE", size : size});
+            result.push({tag_id : tag_id, level : level, name : "SHAPE_COMPONENT_PICTURE", size : size});
             var end = c.pos;
             c.move(size - (end - start));
             break;
           case HWPTAG.CTRL_DATA:
-            result.push({tag_id : tag_id, name : "CTRL_DATA", size : size});
+            result.push({tag_id : tag_id, level : level, name : "CTRL_DATA", size : size});
             var end = c.pos;
             c.move(size - (end - start));
             break;
           case HWPTAG.EQEDIT:
-            result.push({tag_id : tag_id, name : "EQEDIT", size : size});
+            result.push({tag_id : tag_id, level : level, name : "EQEDIT", size : size});
             var end = c.pos;
             c.move(size - (end - start));
             break;
           case HWPTAG.SHAPE_COMPONENT_TEXTART:
-            result.push({tag_id : tag_id, name : "SHAPE_COMPONENT_TEXTART", size : size});
+            result.push({tag_id : tag_id, level : level, name : "SHAPE_COMPONENT_TEXTART", size : size});
             var end = c.pos;
             c.move(size - (end - start));
             break;
           case HWPTAG.FORM_OBJECT:
-            result.push({tag_id : tag_id, name : "FORM_OBJECT", size : size});
+            result.push({tag_id : tag_id, level : level, name : "FORM_OBJECT", size : size});
             var end = c.pos;
             c.move(size - (end - start));
             break;
           case HWPTAG.MEMO_SHAPE:
-            result.push({tag_id : tag_id, name : "MEMO_SHAPE", size : size});
+            result.push({tag_id : tag_id, level : level, name : "MEMO_SHAPE", size : size});
             var end = c.pos;
             c.move(size - (end - start));
             break;
           case HWPTAG.MEMO_LIST:
-            result.push({tag_id : tag_id, name : "MEMO_LIST", size : size});
+            result.push({tag_id : tag_id, level : level, name : "MEMO_LIST", size : size});
             var end = c.pos;
             c.move(size - (end - start));
             break;
           case HWPTAG.CHART_DATA:
-            result.push({tag_id : tag_id, name : "CHART_DATA", size : size});
+            result.push({tag_id : tag_id, level : level, name : "CHART_DATA", size : size});
             var end = c.pos;
             c.move(size - (end - start));
             break;
           case HWPTAG.VIDEO_DATA:
-            result.push({tag_id : tag_id, name : "VIDEO_DATA", size : size});
+            result.push({tag_id : tag_id, level : level, name : "VIDEO_DATA", size : size});
             var end = c.pos;
             c.move(size - (end - start));
             break;
           case HWPTAG.SHAPE_COMPONENT_UNKNOWN:
-            result.push({tag_id : tag_id, name : "SHAPE_COMPONENT_UNKNOWN", size : size});
+            result.push({tag_id : tag_id, level : level, name : "SHAPE_COMPONENT_UNKNOWN", size : size});
             var end = c.pos;
             c.move(size - (end - start));
             break;
           default:
-            result.push({tag_id : tag_id, name : "미씽링크", size : size});
+            result.push({tag_id : tag_id, level : level, name : "미씽링크", size : size});
             var end = c.pos;
             c.move(size - (end - start));
             break;
