@@ -5,7 +5,7 @@ import { Content, Header } from "../type";
 import { String2Number } from "./util";
 const options: Partial<X2jOptions> = {
   ignoreAttributes: false,
-  removeNSPrefix: true,
+  // removeNSPrefix: true,
   attributeNamePrefix: "",
   allowBooleanAttributes: false,
   attributesGroupName : false,

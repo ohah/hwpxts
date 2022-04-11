@@ -398,3 +398,320 @@ export enum HISTORY {
    */
   RECORD_TYPE_LASTDOCDATA = 0x31,
 }
+
+
+/**
+ * 제어 문자(컨트롤)
+ */
+export enum Char {
+  /**
+   * 언유즈어블
+   * @type char
+   * @size 2
+   */
+  UNUSABLE = 0,
+  /**
+   * 예약
+   * @type extended
+   * @size 16
+   */
+  RESERVED_EXTENDED = 1 || 12 || 14,
+  /**
+   * 구역정의/단 정의
+   * @type extended
+   * @size 16
+   */
+  "ZONE/SINGLE_DEFINITION" = 2,
+  /**
+   * 필드 시작(누름틀, 하이퍼링크, 블록 책갈피, 표 계산식, 문서 요약, 사용자 정보, 현재 날짜/시간, 문서 날짜/시간, 파일 경로, 상호 참조, 메일 머지, 메모, 교정부호, 개인정보)
+   * @type extended
+   * @size 16
+   */
+  FIELD_START = 3,
+  /**
+   * 필드 끝
+   * @type extended
+   * @size 16
+   */
+  FIELD_END = 4,
+  /**
+   * 예약
+   * @type inline
+   * @size 16
+   */
+  RESERVED_INLINE = 5 || 6 || 7 || 19 || 20,
+  /**
+   * 타이틀 마크
+   * @type inline
+   * @size 16
+   */
+  TITLE_MARK = 8,
+  /**
+   * 탭
+   * @type inline
+   * @size 16
+   */
+  TAB = 9,
+  /**
+   * 한 줄 끝
+   * @type char
+   * @size 2
+   */
+  LINE_BREAK = 10,
+  /**
+   * 그리기 개체/표
+   * @type extended
+   * @size 16
+   */
+  "DRAWING_OBJECTS/TABLE" = 11,
+  /**
+   * 문단 끝
+   * @type char
+   * @size 2
+   */
+  PARA_BREAK = 13,
+  /**
+   * 숨은 설명
+   * @type extended
+   * @size 16
+   */
+  HIDDEN_EXPLANATION = 15,
+  /**
+   * 머리말/꼬리말
+   * @type extended
+   * @size 16
+   */
+  "FOOTER/PREFACE" = 16,
+  /**
+   * 각주/미주
+   * @type extended
+   * @size 16
+   */
+  "FOOTNOTE/ENDNOTE" = 17,
+  /**
+   * 자동번호(각주, 표 등)
+   * @type extended
+   * @size 16
+   */
+  AUTO_NUMBER = 18,
+  /**
+   * 페이지 컨트롤(감추기, 새 번호로 시작 등)
+   * @type extended
+   * @size 16
+   */
+  PAGE_CTRL = 21,
+  /**
+   * 책갈/찾아보기 표식
+   * @type extended
+   * @size 16
+   */
+  "BOOKMARK/BROWSE_MARK" = 22,
+  /**
+   * 덧말 글자 겹침
+   * @type extended
+   * @size 16
+   */
+  OVERLAP_WORD = 23,
+  /**
+   * 하이픈
+   * @type char
+   * @size 2
+   */
+  HYPEN = 24,
+  /**
+   * 예약
+   * @type char
+   * @size 2
+   */
+  RESERVED_CHAR = 25 || 26 || 27 || 28 || 29,
+  /**
+   * 묶음 빈칸
+   * @type char
+   * @size 2
+   */
+  BUNDLE_BLANK = 30,
+  /**
+   * 고정폭 빈칸
+   * @type char
+   * @size 2
+   */
+  FIXED_WIDTH_BLANK = 31,
+}
+
+
+/** CTRL_HEADER 개체 속성 */
+export enum CTRL_ID {
+  /** 테이블 TableCreation */
+  tbl = "tbl ",
+  /** 선(그리기 개체) */
+  line = "$lin",
+  /** 사각형(그리기 개체) */
+  rec = "$rec",
+  /** 타원(그리기 개체) */
+  ell = "$ell",
+  /** 호(그리기 개체) */
+  arc = "$arc",
+  /** 다각형(그리기 개체) */
+  pol = "$pol",
+  /** 곡선(그리기 개체) */
+  cur = "$cur",
+  /** 한글 97 수식(그리기 개체) EqEdit */
+  eqed = "eqed",
+  /** 그림 */
+  pic = "$pic",
+  /** OLE */
+  ole = "$ole",
+  /** 묶음 개체 */
+  con = "$con",
+  /** GenShapeObject(그리기 개체) ShapeObject */
+  gso = "gso ",
+  /** 단 ColDef */
+  cold = "cold",
+  /** 구역 SecDef */
+  secd = "secd",
+  /** 각주(footnoteShape) */
+  fn = "fn  ",
+  /** 미주(footnoteShape) */
+  en = "en  ",
+  /** 번호넣기(AutoNum) */
+  atno = "atno",
+  /** 번호넣기(AutoNum) 새 번호로 */
+  nwno = "nwno",
+  /** 페이지 번호 제어(pgct) PageNumCtrl */
+  pgct = "pgct",
+  /** 감추기(pghd) PageHiding */
+  pghd = "pghd",
+  /** 머리말 HeaderFooter */
+  head = "head",
+  /** 꼬리말 HeaderFooter */
+  foot = "foot",
+  /** 현재의 날짜/시간 필드 FieldCtrl */
+  dte = "%dte",
+  /** 파일 작성 날짜/시간 필드 FieldCtrl */
+  ddt = "%ddt",
+  /** 문서 경로 필드 FieldCtrl */
+  pat = "%pat",
+  /** 블럭 책갈피 FieldCtrl */
+  bmk = "%bmk",
+  /** 메일 머지 FieldCtrl */
+  mmg = "%mmg",
+  /** 상호 참조 FieldCtrl */
+  xrf = "%xrf",
+  /** 계산식 FieldCtrl */
+  fmu = "%fmu",
+  /** 누름틀 FieldCtrl */
+  clk = "%clk",
+  /** 문서 요약 정보 필드 FieldCtrl */
+  smr = "%smr",
+  /** 사용자 정보 필드 FieldCtrl*/
+  usr = "%usr",
+  /** 하이퍼링크 FieldCtrl */
+  hlk = "%hlk",
+  /** 책갈피 TextCtrl */
+  bokm = "bokm",
+  /** 찾아보기 IndexMark */
+  idxm = "idxm",
+  /** 덧말 Dutmal */
+  tdut = "tdut",
+  /** 없음(주석) */
+  tcmt = "tcmt",
+}
+
+/**
+ * FILED CTRL_ID 에 대한 속성
+ */
+export enum FIELD {
+  /** UNKNOWN */
+  UNKNOWN = "%unk",
+  /** 날짜 */
+  DATE = "%dte",
+  /** DOCDATE */
+  DOCDATE = "%ddt",
+  /** 파일 경로 */
+  FILEPATH = "%pat",
+  /** 블럭 책갈피 */
+  BOOKMARK = "%bmk",
+  /** 메일 머지 */
+  MAILMERGE = "%mmg",
+  /** 상호 참조 */
+  XREF = "%xrf",
+  /** 계산식 */
+  FORMULA = "%fmu",
+  /** 누름틀 */
+  CLOCK = "%clk",
+  /** 문서 요약 정보 */
+  SUMMARY = "%smr",
+  /** 사용자 정보 */
+  USERINFO = "%usr",
+  /** 하이퍼링크 */
+  HYPERLINK = "%hlk",
+  /** REVISION_SIGN(개정판) */
+  REVISION_SIGN = "%sig",
+  /** REVISION_DELETE */
+  REVISION_DELETE = "%%*d",
+  /** REVISION_ATTACH */
+  REVISION_ATTACH = "%%*a",
+  /** REVISION_CLIPPING */
+  REVISION_CLIPPING = "%%*C",
+  /** REVISION_SAWTOOTH */
+  REVISION_SAWTOOTH = "%%*S",
+  /** REVISION_THINKING */
+  REVISION_THINKING = "%%*T",
+  /** REVISION_PRAISE */
+  REVISION_PRAISE = "%%*P",
+  /** REVISION_LINE */
+  REVISION_LINE = "%%*L",
+  /** REVISION_SIMPLECHANGE */
+  REVISION_SIMPLECHANGE = "%%*c", 
+  /** REVISION_HYPERLINK */
+  REVISION_HYPERLINK = "%%*h",
+  /** REVISION_LINEATTACH */
+  REVISION_LINEATTACH = "%%*A",
+  /** REVISION_LINELINK */
+  REVISION_LINELINK = "%%*i",
+  /** REVISION_LINETRANSFER */
+  REVISION_LINETRANSFER = "%%*t",
+  /** REVISION_RIGHTMOVE */
+  REVISION_RIGHTMOVE = "%%*r",
+  /** REVISION_LEFTMOVE */
+  REVISION_LEFTMOVE = "%%*l",
+  /** REVISION_TRANSFER */
+  REVISION_TRANSFER = "%%*n",
+  /** REVISION_SIMPLEINSERT */
+  REVISION_SIMPLEINSERT = "%%*e",
+  /** REVISION_SPLIT */
+  REVISION_SPLIT = "%spl",
+  /** REVISION_CHANGE */
+  REVISION_CHANGE = "%%mr",
+  /** MEMO */
+  MEMO = "%%me",
+  /** PRIVATE_INFO_SECURITY */
+  PRIVATE_INFO_SECURITY = "%cpr",
+  /** TABLEOFCONTENTS */
+  TABLEOFCONTENTS = "%toc",
+}
+/**
+ * 컨트롤 개체의 속성
+ */
+export enum CtrlCode {
+  /** 구역/단 정의 */
+ "ZONE/SINGLE_DEFINITION" = 2,
+  /** 필드 시작 */
+  FIELD_START = 3,
+  /** 그리기 개체 /표 */
+  DRAWING_OBJECT_TABLE = 11,
+  /** 주석 */
+  COMMENT = 15,
+  /** 머리말 / 꼬리말 */
+  HEADER_FOOTER = 16,
+  /** 각주 / 미주 */
+  FOOTNOTE = 17,
+  /** 자동번호 */
+  AUTO_NUMBER = 18,
+  /** 새번호/번호 감추기/번호 위치 */
+  NEW_NUMBER_HIDING_POSITION = 21,
+  /** 책갈피 / 찾아보기 표시 */
+  BOOKMARK_INDEX_MARK = 22,
+  /** 덧말 / 글자 겹침 */
+  DUTMAL_OVERLAP = 23,
+}

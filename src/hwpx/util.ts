@@ -4,7 +4,9 @@
  */
 export const String2Number = (json:string) => {
   return JSON.parse(JSON.stringify(json), (key, value)=> {
-    if(Number.isNaN(Number(value)) === false) {
+    if(value === '') {
+      return value;
+    } else if(Number.isNaN(Number(value)) === false) {
       return parseFloat(value)
     } else {
       return value;
