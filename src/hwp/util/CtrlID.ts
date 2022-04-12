@@ -4,6 +4,10 @@ import { Cursor } from "../cursor";
 import { HwpBlob } from "../type";
 import { Bit } from "../util";
 
+
+export const SECTION_DEFINE_DOWN = (content:HwpBlob) => {
+
+}
 /**
  * 구역 정의
  */
@@ -114,78 +118,74 @@ export const SECTION_DEFINE = (content:HwpBlob) => {
       }
     },
   }
-  console.log('secd', JSON.stringify(secd));
+  // console.log('secd', JSON.stringify(secd));
+  console.log('secd', secd);
   return result;
 };
 
 /**
  * 문단 정의
  * @param content 
+ * @id id 단 설정 정보를 구분하기 위한 아이디
+ * @type 단 종류
+ * @layout 단 방향 지정
+ * @colCount 단 개수
+ * @sameSz 단 너비를 동일하게 지정할지 여부(true=동일)
+ * @sameGap 단 사이 간격(sameSz === true일 경우 사용)
+ * @하위요소
+ * @colLine 단 구분선(type, width, color)
+ * @colSz 단 사이 간격(sameSz === false일 경우 사용){width, gap}
  * @returns 
  * @missing_link 
  */
 export const COLD_DEFINE = (content: HwpBlob) => {
-  console.log('cold_size', content, content.length);
+  // console.log('cold_size', content, content.length);
   const c = new Cursor(0);
   /** 속성의 bit */
   const attr = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
   const data:any = {
-    /** 단 종류 */
-    type: Bit(attr, 0, 1) === 0 ? '일반' : Bit(attr, 0, 1) === 1 ? '배분' : '평행',
+    /** 단 종류 (일반 = NEWSPAPER, 배분 = BALANCED_NEWSPAPER, 평행 = PARALLEL) */
+    type: Bit(attr, 0, 1) === 0 ? 'NEWSPAPER' : Bit(attr, 0, 1) === 1 ? 'BALANCED_NEWSPAPER' : 'PARALLEL',
     /** 단 개수 1~255 */
-    count: Bit(attr, 2, 9),
+    colCount: Bit(attr, 2, 9),
     /** 단 방향 지정 */
-    direction: Bit(attr, 10, 11) === 0 ? '왼쪽' : Bit(attr, 10, 11) === 1 ? '오른쪽' : '맞쪽',
+    layout: Bit(attr, 10, 11) === 0 ? 'LEFT' : Bit(attr, 10, 11) === 1 ? 'RIGHT' : 'MIRROR',
     /** 단 너비 동일하게 */
-    same_width: Bit(attr, 12, 12),
+    samsSz: Bit(attr, 12, 12) === 0 ? false : true,
     /** 단 사이의 간격 */
-    spacecolumns: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getInt16(0, true),
+    sameGap: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getInt16(0, true),
     /** 단 너비가 동일하지 않으면, 단의 개수만큼 단의 폭(2 * cnt) */
     // wordSize: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getInt16(0, true),
     /** 속성의 bit 16-32 */
     attr2 : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
     /** 단 구분선 종류 */
-    lineType: new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
+    style: new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
     /** 단 구분선 굵기 */
-    lineWeight: new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
+    width: new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
     /** 단 구분선 색상 */
-    lineColor: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
+    color: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
   }
   if(data.count > 1) {
     /** 단 너비가 동일하지 않으면, 단의 개수만큼 단의 폭(2 * cnt) */
     data.wordSize = new DataView(new Uint8Array(content.slice(c.pos, c.move(2 * data.count))).buffer, 0).getInt16(0, true);
   }
-  console.log('cold define', data);
+  // console.log('cold define', data);
+  const { type, colCount, layout, samsSz, sameGap, wordSize, style, width, color } = data;
+  const colpr = {
+    id : null,
+    type : type,
+    layout : layout,
+    samsSz : samsSz,
+    sameGap : sameGap,
+    wordSize : wordSize,
+    style : style,
+    width : width,
+    color : color,
+    colCount : colCount
+  }
+  return colpr;
   // const attr2 = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
   return data;
   /** 속성의 bit 16-32 */
   /** 단 구분선 종류 */
-}
-
-export const PAGE_BORDER_FILL = (content: HwpBlob) => {
-  const c = new Cursor(0);
-  const attribute = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true);
-  const pageBorderFill:any = {
-    offset : {
-      left : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
-      right : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
-      top : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
-      botom : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
-    },
-    borderFillIDRef : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
-  }
-  pageBorderFill.textBorder = Bit(attribute, 0, 0) === 0 ? "CONTENT" : "PAPER";
-  pageBorderFill.attribute.headerInside = Bit(attribute, 1, 1);
-  pageBorderFill.attribute.footerInside = Bit(attribute, 2, 2);
-  switch (Bit(attribute, 3, 4)) {
-    case 0:
-      pageBorderFill.fillArea = "PAPER";
-      break;
-    case 1:
-      pageBorderFill.fillArea = "PAGE";
-      break;
-    case 2:
-      pageBorderFill.fillArea = "BORDER";
-      break;
-  }
 }

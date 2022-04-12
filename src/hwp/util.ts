@@ -129,6 +129,88 @@ export const HwpReader = (cfb:CFB.CFB$Entry[]) => {
     Section : cfb.filter((entry)=>entry.name.match(/Section[0-9]{1,1000}/))
   }
 }
+/**
+ * 
+ * @param content 
+ */
+export const PAGE_BORDER_FILL = (content: HwpBlob) => {
+  const c = new Cursor(0);
+  const attribute = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true);
+  const data:any = {
+    offset : {
+      left : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
+      right : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
+      top : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
+      botom : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
+    },
+    borderFillIDRef : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
+  }
+  data.textBorder = Bit(attribute, 0, 0) === 0 ? "CONTENT" : "PAPER";
+  data.attribute.headerInside = Bit(attribute, 1, 1);
+  data.attribute.footerInside = Bit(attribute, 2, 2);
+  switch (Bit(attribute, 3, 4)) {
+    case 0:
+      data.fillArea = "PAPER";
+      break;
+    case 1:
+      data.fillArea = "PAGE";
+      break;
+    case 2:
+      data.fillArea = "BORDER";
+      break;
+  }
+  const { left, right, top, botom } = data.offset;
+  const { borderFillIDRef, textBorder, attribute : attr } = data;
+  const { headerInside, footerInside } = attr;
+  
+}
+/**
+ * 페이지 정의
+ * @param content 
+ */
+export const PAGE_DEF = (content: HwpBlob) => {
+  const size = content.length;
+  const c = new Cursor(0);
+  const data:any = {
+    /** 용지 가로, 단위는 HWPUNIT */
+    width : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
+    /** 용지 세로, 단위는 HWPUNIT */
+    height : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
+    margin : {
+      /** 왼쪽 여백 HWPUNIT */
+      left : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
+      /** 오른쪽 여백 HWPUINT */
+      right : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
+      /** 위쪽 여백 HWPUINT */
+      top : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
+      /** 아래쪽 여백 HWPUINIT */
+      bottom : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
+      /** 머리말 여백 */
+      header : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
+      /** 꼬리말 여백 */
+      footer : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
+      /** 제본 여백 */
+      gutter : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
+    }
+  }
+  const paper_attribute = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true);
+  /** 용지 방향 */
+  data.landscape = Bit(paper_attribute, 0, 0) === 0  ? 'WIDELY' : 'NARROWLY';
+  /** 제책 방법 */
+  data.gutterType = Bit(paper_attribute, 1, 2) === 0 ? 'LEFT_ONLY' : Bit(paper_attribute, 1, 2) === 1 ? 'LEFT_RIGHT' : 'TOP_BOTTOM';
+
+  const { width, height, margin, landscape, gutterType } = data;
+  const { left, right, top, bottom, header, footer, gutter } = margin;
+  const pagepr = {
+    landscape : landscape,
+    width : width,
+    height : height,
+    gutterType : gutterType,
+    margin : {
+      ...margin
+    }
+  }
+}
 
 /**
  * 문단의 레이아웃
@@ -256,12 +338,13 @@ export const PARA_TEXT = (content:HwpBlob, ctrl_id:CTRL_ID) => {
     switch (charCode) {
       case Char["ZONE/SINGLE_DEFINITION"]:
         const para_id = new TextDecoder("utf8").decode(text_content.slice(pc.pos + 2, pc.pos + 6).reverse());
-        // console.log('para_id', para_id)
-        // if(para_id == "secd") {
+        console.log('para_id', para_id)
+        if(para_id == "secd") {
           // const t = SECTION_DEFINE(text_content.slice(pc.pos + 6, pc.pos + 32));
           // console.log('t', t);
-        // }
-        pc.move(32);
+        }
+        console.log(buf2hex(text_content.slice(pc.pos + 6, pc.pos + 16)));
+        pc.move(16);
         break;
       case Char.RESERVED_CHAR:
         pc.move(2);
@@ -336,6 +419,7 @@ export const PARA_TEXT = (content:HwpBlob, ctrl_id:CTRL_ID) => {
   }
   const text = new Uint8Array(paragraph_text);
   const result = new TextDecoder("utf-16le").decode(text);
+  console.log(result);
   return result;
 }
 

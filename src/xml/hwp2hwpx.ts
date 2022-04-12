@@ -10,6 +10,6 @@ export class Hwp2Hwpx extends JSZip {
     super();
     this.#files = [
       {"Contents/content.hpf" : new File([], "asdf")},
-    ],
+    ];
   }
 }

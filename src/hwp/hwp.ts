@@ -2,7 +2,7 @@ import pako from "pako";
 import CFB from "cfb";
 import { Char, CTRL_ID, HWPTAG } from "./type";
 import { Fontface, Header } from "../type";
-import { buf2hex, CTRL_HEADER, HwpHeader, HwpReader, LINE_SEG, PARA_HEADER, PARA_TEXT, readRecord } from "./util";
+import { buf2hex, CTRL_HEADER, HwpHeader, HwpReader, LINE_SEG, PAGE_DEF, PARA_HEADER, PARA_TEXT, readRecord } from "./util";
 import { Cursor } from "./cursor";
 import { Section } from "../hwpx/type/section";
 export class Hwp {
@@ -395,7 +395,7 @@ export class Hwp {
             c.move(size - (end - start));
             break;
           case HWPTAG.PAGE_DEF:
-            result.push({tag_id : tag_id, level : level, name : "PAGE_DEF", size : size});
+            result.push({tag_id : tag_id, level : level, name : "PAGE_DEF", size : size, content : PAGE_DEF(content.slice(c.pos, c.pos + size))});
             var end = c.pos;
             c.move(size - (end - start));
             break;
