@@ -105,7 +105,8 @@ export class Hwp {
       console.log('reader', this.#hwp);
       console.log('hwpversion', this.version);
       console.log('docinfo', this.docInfo);
-      console.log('section', this.section);
+      // console.log('section', this.section);
+      this.section
     })();
   }
   
@@ -197,7 +198,6 @@ export class Hwp {
           }
           // this.header.head.
           var end = c.pos;
-          console.warn('??', data, this.version)
           c.move(size - (end - start));
           // this.header.head.
           break;
@@ -352,7 +352,6 @@ export class Hwp {
             const ctrlId = new TextDecoder("utf8").decode(content.slice(c.pos, c.move(4)).reverse());
             // console.log("CTRL_HEADER", ctrlId);
             ctrl_id = ctrlId;
-            console.log('모야모야', ctrlId)
             var end = c.pos;
             c.move(size - (end - start));
             break;

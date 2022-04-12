@@ -1,6 +1,7 @@
 import CFB from "cfb";
 import { Cursor } from "./cursor";
 import { Char, CTRL_ID, HwpBlob } from "./type"
+import { COLD_DEFINE, SECTION_DEFINE } from "./util/CtrlID"
 /**
  * 바이너리 레코드 읽기
  * @param data 
@@ -179,59 +180,12 @@ export const LINE_SEG = (content:HwpBlob) => {
 export const CTRL_HEADER = (content:HwpBlob) => {
   const size = content.length;
   const c = new Cursor(0);
-  const ctrlId = new TextDecoder("utf8").decode((content as any).slice(c.pos, c.move(4)).reverse());
-  // console.log('ctrlId', ctrlId, content);
-  if(size >= 46) {
-    const _attr = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true);
-    const objectCommonAttribute = {
-      /** 속성 */
-      attr : {
-        like_letters : Bit(_attr, 0, 0),
-        reservation : Bit(_attr, 1, 1),
-        VertRelTo : Bit(_attr, 3, 4) === 0 ? "paper" : Bit(_attr, 3, 4) === 1 ? "page" : "para",
-        VertRelTo_relative : Bit(_attr, 5, 7),
-        HorzRelTo : Bit(_attr, 8, 9) === 2 ? "column" : Bit(_attr, 8, 9) === 3 ? "para" : "page",
-        HorzRelTo_relative : Bit(_attr, 10, 12),
-        VertRelTo_para : Bit(_attr, 13, 13) === 0 ? "off" : "on",
-        overlap : Bit(_attr, 14, 14),
-        size_protect : Bit(_attr, 20, 20) === 0 ? "off" : "on",
-      },
-      /** 세로/가로 오프셋값 */
-      offset : {
-        vertical : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
-        horzontal : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
-      },
-      /** 오브젝트 넓이/높이 */
-      object : {
-        width : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
-        height : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
-      },
-      /** zIndex */  
-      zOrder : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
-      /** 오브젝트의 바깥 4방향 여백 */
-      margin : {
-        bottom : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
-        left : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
-        right : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
-        top : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
-      },
-      /** 고유 ID */
-      instance_id : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
-      /** 쪽 나눔 방지 on(1) / off(0) */
-      pageDivde : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
-      /** 개체 설명문 글자 길이(len) */
-      len : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
-    } 
-    return objectCommonAttribute;
-    /** 개체 설명문 글자 */
-    // const text = new DataView(new Uint8Array(content.slice(c.pos, c.move(2 * objectCommonAttribute.len))).buffer, 0).getUint16(0, true);
-  } else {
-    console.log('없음', ctrlId) 
-  }
+  const ctrlId = new TextDecoder("utf8").decode((content as any).slice(c.pos, c.move(4)).reverse());  
+  const ctrl_content = content.slice(4, content.length);
   switch (ctrlId) {
     case CTRL_ID.secd:
-      const secd_content = content.slice(0, 32);
-      const result = new TextDecoder("utf8").decode(content as any);
+      // const result = new TextDecoder("utf8").decode(content as any);
+      console.log('SECTION_DEFINE', SECTION_DEFINE(ctrl_content));
       // const { tag_id, level, size : secDSize, move } = readRecord(new Uint8Array(content.slice(c.pos, c.move(4) + 4)));
       // console.log('secd', tag_id, level, size, move);   
       break;
@@ -302,11 +256,11 @@ export const PARA_TEXT = (content:HwpBlob, ctrl_id:CTRL_ID) => {
     switch (charCode) {
       case Char["ZONE/SINGLE_DEFINITION"]:
         const para_id = new TextDecoder("utf8").decode(text_content.slice(pc.pos + 2, pc.pos + 6).reverse());
-        console.log('para_id', para_id)
-        if(para_id == "secd") {
-          const t = SECTION_DEFINE(text_content.slice(pc.pos + 6, pc.pos + 32));
-          console.log('t', t);
-        }
+        // console.log('para_id', para_id)
+        // if(para_id == "secd") {
+          // const t = SECTION_DEFINE(text_content.slice(pc.pos + 6, pc.pos + 32));
+          // console.log('t', t);
+        // }
         pc.move(32);
         break;
       case Char.RESERVED_CHAR:
@@ -322,6 +276,7 @@ export const PARA_TEXT = (content:HwpBlob, ctrl_id:CTRL_ID) => {
         pc.move(2);
         break;
       case Char.FIELD_START:
+        console.log('FILED_START', "");
         pc.move(16);
         break;
       case Char.FIELD_END:
@@ -381,120 +336,60 @@ export const PARA_TEXT = (content:HwpBlob, ctrl_id:CTRL_ID) => {
   }
   const text = new Uint8Array(paragraph_text);
   const result = new TextDecoder("utf-16le").decode(text);
-  console.log(ctrl_id, result)
   return result;
-}
-
-/**
- * 구역 정의
- */
-const SECTION_DEFINE = (content:HwpBlob) => {
-  const c = new Cursor(0);
-  const attr = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true);
-  /** 구역정의 속성 */
-  const attribute = {
-    /** 머리말을 감출지 여부 */
-    hide_header: Bit(attr, 0, 0),
-    /** 꼬리말을 감출지 여부 */
-    hide_footer: Bit(attr, 1, 1),
-    /** 바탕쪽을 감출지 여부 */
-    hide_background: Bit(attr, 2, 2),
-    /** 테두리를 감출지 여부 */
-    hide_border: Bit(attr, 3, 3),
-    /** 배경을 감출지 여부 */
-    hide_background_image: Bit(attr, 4, 4),
-    /** 쪽 번호 위치를 감출지 여부 */
-    hide_page_number: Bit(attr, 5, 5),
-    /** 구역의 첫 쪽에만 테두리 표시 여부 */
-    hide_border_first_page: Bit(attr, 8, 8),
-    /** 구역의 첫 쪽에만 배경 표시 여부 */
-    hide_background_first_page: Bit(attr, 9, 9),
-    /** 텍스트 방향(0 : 가로 1 : 세로) */  
-    textdirection: Bit(attr, 16, 18),
-    /** 빈 줄 감춤 여부 */
-    hide_empty_line: Bit(attr, 19, 19),
-    /** 구역 나눔으로 새 페이지가 생길 떄의 페이지 번호 적용할지 여부 */
-    page_number_apply_section_break: Bit(attr, 20, 21),
-    /** 원고지 정서법 적용 여부 */
-    apply_syllable_rule: Bit(attr, 22, 22),
-  }
-  
-  const result:any = {
-    /** 구역정의 속성 */
-    attribute : attribute,
-    /** 단 사이의 간격  */
-    spacecolumns: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getInt16(0, true),
-    /** 텍스트 방향(세로로 줄맞춤을 할지 여부) grid */
-    lineGrid: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getInt16(0, true),
-    /** 텍스트 방향(가로로 줄맞춤을 할지 여부) grid */
-    charGrid: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getInt16(0, true),
-    /** 기본탭 간격 */
-    tabStop: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
-    /** 번호 문단 모양ID */
-    outlineshapeidref: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
-    /** 쪽 번호 */
-    page: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
-    /** 그림 번호 (0 = 앞 구역에 이어, n = 임의의 번호로 시작) */
-    pic: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
-    /** 표(테이블) 번호 (0 = 앞 구역에 이어, n = 임의의 번호로 시작) */
-    tbl: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
-    /** 수식 번호 (0 = 앞 구역에 이어, n = 임의의 번호로 시작) */
-    equation: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
-    /** 대표 Language */
-    language: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
-  }
-  console.log('무야', result, content.length);
-  return result;
-};
-
-/**
- * 문단 정의
- * @param content 
- * @returns 
- * @missing_link 
- */
-export const COLD_DEFINE = (content: HwpBlob) => {
-  console.log('cold_size', content, content.length);
-  const c = new Cursor(0);
-  /** 속성의 bit */
-  const attr = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
-  const data:any = {
-    /** 단 종류 */
-    type: Bit(attr, 0, 1) === 0 ? '일반' : Bit(attr, 0, 1) === 1 ? '배분' : '평행',
-    /** 단 개수 1~255 */
-    count: Bit(attr, 2, 9),
-    /** 단 방향 지정 */
-    direction: Bit(attr, 10, 11) === 0 ? '왼쪽' : Bit(attr, 10, 11) === 1 ? '오른쪽' : '맞쪽',
-    /** 단 너비 동일하게 */
-    same_width: Bit(attr, 12, 12),
-    /** 단 사이의 간격 */
-    spacecolumns: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getInt16(0, true),
-    /** 단 너비가 동일하지 않으면, 단의 개수만큼 단의 폭(2 * cnt) */
-    // wordSize: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getInt16(0, true),
-    /** 속성의 bit 16-32 */
-    attr2 : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
-    /** 단 구분선 종류 */
-    lineType: new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
-    /** 단 구분선 굵기 */
-    lineWeight: new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
-    /** 단 구분선 색상 */
-    lineColor: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
-  }
-  if(data.count > 1) {
-    /** 단 너비가 동일하지 않으면, 단의 개수만큼 단의 폭(2 * cnt) */
-    data.wordSize = new DataView(new Uint8Array(content.slice(c.pos, c.move(2 * data.count))).buffer, 0).getInt16(0, true);
-  }
-  console.log('cold define', data);
-  // const attr2 = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
-  return data;
-  /** 속성의 bit 16-32 */
-  /** 단 구분선 종류 */
-
-  
 }
 
 /**
  * 개체 공통 속성
+ * @returns Object
+ */
+export const OBJECT_COMMON_ATTRIBUTE = (content: HwpBlob) => {
+  const c = new Cursor(0);
+  const _attr = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true);
+  const objectCommonAttribute = {
+    /** 속성 */
+    attr : {
+      like_letters : Bit(_attr, 0, 0),
+      reservation : Bit(_attr, 1, 1),
+      VertRelTo : Bit(_attr, 3, 4) === 0 ? "paper" : Bit(_attr, 3, 4) === 1 ? "page" : "para",
+      VertRelTo_relative : Bit(_attr, 5, 7),
+      HorzRelTo : Bit(_attr, 8, 9) === 2 ? "column" : Bit(_attr, 8, 9) === 3 ? "para" : "page",
+      HorzRelTo_relative : Bit(_attr, 10, 12),
+      VertRelTo_para : Bit(_attr, 13, 13) === 0 ? "off" : "on",
+      overlap : Bit(_attr, 14, 14),
+      size_protect : Bit(_attr, 20, 20) === 0 ? "off" : "on",
+    },
+    /** 세로/가로 오프셋값 */
+    offset : {
+      vertical : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
+      horzontal : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
+    },
+    /** 오브젝트 넓이/높이 */
+    object : {
+      width : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
+      height : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
+    },
+    /** zIndex */  
+    zOrder : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
+    /** 오브젝트의 바깥 4방향 여백 */
+    margin : {
+      bottom : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
+      left : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
+      right : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
+      top : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
+    },
+    /** 고유 ID */
+    instance_id : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
+    /** 쪽 나눔 방지 on(1) / off(0) */
+    pageDivde : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
+    /** 개체 설명문 글자 길이(len) */
+    len : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
+  } 
+  return objectCommonAttribute;
+}
+/**
+ * 개체 공통 속성
+ * @returns boolean
  */
 export const isCommon = (object:CTRL_ID) => {
   return [CTRL_ID.tbl, CTRL_ID.line, CTRL_ID.rec, CTRL_ID.ell, CTRL_ID.arc, CTRL_ID.pol, CTRL_ID.cur, CTRL_ID.eqed, CTRL_ID.cur, CTRL_ID.pic, CTRL_ID.ole, CTRL_ID.con, CTRL_ID.gso].includes(object);

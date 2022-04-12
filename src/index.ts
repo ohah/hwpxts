@@ -14,6 +14,8 @@ var zip = new JSzip();
   // console.log('array', await table.arrayBuffer());
   // console.log('header', await hwpx.header);
   console.log('section', await hwpx.section);
+  document.body.innerHTML = JSON.stringify(await hwpx.section, null, 2);
+  document.body.style.whiteSpace = "pre-wrap";
   // console.log('content', await (await hwpx.content).package);
   // console.log('metaInf', await hwpx.metaInf);
   // console.log('preview', await hwpx.preview);

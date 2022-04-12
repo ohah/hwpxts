@@ -104,11 +104,20 @@ export interface Placement {
 }
 
 export interface Grid {
-  lineGrid: number;
-  charGrid: number;
+  lineGrid:       number;
+  charGrid:       number;
   wonggojiFormat: number;
+  strtnum:        Strtnum;
 }
 
+export interface Strtnum {
+  pagestartson: string;
+  page:         number;
+  pic:          number;
+  tbl:          number;
+  equation:     number;
+  visibility:   Visibility;
+}
 export interface LineNumberShape {
   restartType: number;
   countBy: number;
