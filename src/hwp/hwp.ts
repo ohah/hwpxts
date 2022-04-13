@@ -102,10 +102,10 @@ export class Hwp {
       this.#cfb = cfb;
       console.log(this.#cfb);
       this.#hwp = HwpReader(this.#cfb);
-      console.log('reader', this.#hwp);
-      console.log('hwpversion', this.version);
-      console.log('docinfo', this.docInfo);
-      // console.log('section', this.section);
+      // console.log('reader', this.#hwp);
+      // console.log('hwpversion', this.version);
+      // console.log('docinfo', this.docInfo);
+      console.log('section', this.section);
       this.section
     })();
   }
@@ -270,13 +270,13 @@ export class Hwp {
           c.move(size - (end - start));
           break;
         case HWPTAG.TRACK_CHANGE_AUTHOR :
-          result.push({name : "TRACK_CHANGE_AUTHOR  ", size : size});
+          result.push({name : "TRACK_CHANGE_AUTHOR", size : size});
           var end = c.pos;
           // console.log('FONT_NAME',data)
           c.move(size - (end - start));
           break;
         case HWPTAG.TRACK_CHANGE :
-          result.push({name : "TRACK_CHANGE  ", size : size});
+          result.push({name : "TRACK_CHANGE", size : size});
           var end = c.pos;
           // console.log('FONT_NAME',data)
           c.move(size - (end - start));

@@ -264,21 +264,26 @@ export const CTRL_HEADER = (content:HwpBlob) => {
   const c = new Cursor(0);
   const ctrlId = new TextDecoder("utf8").decode((content as any).slice(c.pos, c.move(4)).reverse());  
   const ctrl_content = content.slice(4, content.length);
+  if(isCommon(ctrlId)) {
+    console.log('공통 속성', ctrlId)
+  }
   switch (ctrlId) {
     case CTRL_ID.secd:
       // const result = new TextDecoder("utf8").decode(content as any);
+      // OBJECT_COMMON_ATTRIBUTE(content.slice(4, content.length ));
       console.log('SECTION_DEFINE', SECTION_DEFINE(ctrl_content));
       // const { tag_id, level, size : secDSize, move } = readRecord(new Uint8Array(content.slice(c.pos, c.move(4) + 4)));
       // console.log('secd', tag_id, level, size, move);   
       break;
     case CTRL_ID.cold:
-      COLD_DEFINE(content.slice(4, content.length ));
+      return COLD_DEFINE(ctrl_content);
       break;
   
     default:
       // console.warn('작업 안된 ctrl_id', ctrlId)
       break;
   }
+  return "";
 }
 
 /**
@@ -424,6 +429,29 @@ export const PARA_TEXT = (content:HwpBlob, ctrl_id:CTRL_ID) => {
 }
 
 /**
+ * CHAR_SHAPE 문단 모양
+ * @param content 
+ * @returns 
+ * @size 8 * n
+ */
+export const PARA_CHAR_SHAPE = (content:HwpBlob) => {
+  const c = new Cursor(0);
+  const size = content.length;
+  const data = [];
+  for(let i=0;i<size/8;i++) {
+    const shape = {
+      /** 글자 모양이 바뀌는 시작 위치 */
+      startNumber : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
+      /** 글자 모양 ID */
+      charPriDRef : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
+    }
+    data.push(shape);
+  }
+  return data;
+}
+
+
+/**
  * 개체 공통 속성
  * @returns Object
  */
@@ -475,12 +503,12 @@ export const OBJECT_COMMON_ATTRIBUTE = (content: HwpBlob) => {
  * 개체 공통 속성
  * @returns boolean
  */
-export const isCommon = (object:CTRL_ID) => {
+export const isCommon = (object:any) => {
   return [CTRL_ID.tbl, CTRL_ID.line, CTRL_ID.rec, CTRL_ID.ell, CTRL_ID.arc, CTRL_ID.pol, CTRL_ID.cur, CTRL_ID.eqed, CTRL_ID.cur, CTRL_ID.pic, CTRL_ID.ole, CTRL_ID.con, CTRL_ID.gso].includes(object);
 }
 /**
  * 개체 요소 속성
  */
- export const isElement = (object:CTRL_ID) => {
+ export const isElement = (object:any) => {
   return [CTRL_ID.line, CTRL_ID.rec, CTRL_ID.ell, CTRL_ID.arc, CTRL_ID.pol, CTRL_ID.cur, CTRL_ID.eqed, CTRL_ID.cur, CTRL_ID.pic, CTRL_ID.ole, CTRL_ID.con, CTRL_ID.gso].includes(object);
 }
