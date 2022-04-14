@@ -5,35 +5,35 @@ export enum VisibilityValue {
   SHOW_ALL = "SHOW_ALL",
 }
 
-enum Enum_LineType {
+const enum Enum_LineType {
+  NONE = "없음",
   /**
    * 실선
    * 중간에 끊어짐이 없이 동일한 굵기로 이어지는 선이다.
    **/
- SOLID = "SOLID",
- /**
-  * 점선
-  * 동일한 굵기를 가지지만 중간중간에 동일한 간격으로 끊어짐이 있는 선이다.
-  **/
- DOT = "DOT",
- /**
-  * 굵은 선
-  * SOLID 형태의 선으로 SOLID 형식의 선보다는 굵은 선이다.
-  **/
- DASH = "DASH",
- /**
-  * 긴 점선
-  * 중간중간에 끊어짐이 있는 선으로, 끊어진 선들의 길이가 다른 선이다. 길이가 짧은 선과 길이가 긴 선이 번갈아가면서 나오는 선이다.
-  **/
- DASH_DOT = "DASH_DOT",
- /**
-  * 긴 점선 점선 점선
-  * DASH 형식의 선에서 짧은 선 대신 점이 2개 들어간 형태의 선이다.
-  **/
- DASH_DOT_DOT = "DASH_DOT_DOT",
+  SOLID = "SOLID",
+  /**
+   * 점선
+   * 동일한 굵기를 가지지만 중간중간에 동일한 간격으로 끊어짐이 있는 선이다.
+   **/
+  DOT = "DOT",
+  /**
+   * 굵은 선
+   * SOLID 형태의 선으로 SOLID 형식의 선보다는 굵은 선이다.
+   **/
+  DASH = "DASH",
+  /**
+   * 긴 점선
+   * 중간중간에 끊어짐이 있는 선으로, 끊어진 선들의 길이가 다른 선이다. 길이가 짧은 선과 길이가 긴 선이 번갈아가면서 나오는 선이다.
+   **/
+  DASH_DOT = "DASH_DOT",
+  /**
+   * 긴 점선 점선 점선
+   * DASH 형식의 선에서 짧은 선 대신 점이 2개 들어간 형태의 선이다.
+   **/
+  DASH_DOT_DOT = "DASH_DOT_DOT",
 }
 enum Enum_LineType2 {
-  NONE = "없음",
   /**
    * DASH
    * DASH 형태의 선으로 DASH 형식의 선보다는 선을 구성하는 단위 선의 길이가 긴 선이다
@@ -66,7 +66,6 @@ enum Enum_LineType2 {
   SLIM_THICK_SLIM = "SLIM_THICK_SLIM",
 }
 
-
 enum Enum_LineType3 {
   /* 물결선 */
   WAVE = "WAVE",
@@ -95,18 +94,69 @@ export enum LineWidth {
   "#5.0" = 5.0,
 }
 
-export type RGBColorType = ("/^#[0-9a-fA-F]{6}$/");
+export type RGBColorType = "/^#[0-9a-fA-F]{6}$/";
 
+/** 라인 Type */
 export type LineType1 = Enum_LineType;
 
 export type LineType2 = Enum_LineType | Enum_LineType2;
 
 export type LineType3 = Enum_LineType | Enum_LineType2 | Enum_LineType3;
 
-
-
 export interface ColumnDefType {
-  type : LineType2,
-  width : LineWidth,
-  color : RGBColorType,
+  type: LineType2;
+  width: LineWidth;
+  color: RGBColorType;
+}
+
+/**
+ * 언어(한글, 영어, 한자, 일어, 기타, 심볼, 사용자)
+ * Language
+ */
+export enum Lang {
+  HANGUL = "HANGUL",
+  LATIN = "LATIN",
+  HANJA = "HANJA",
+  JAPANESE = "JAPANESE",
+  OTHER = "OTHER",
+  SYMBOL = "SYMBOL",
+  USER = "USER",
+}
+
+/**
+ * 중심선 종류
+ * CenterLine
+ */
+export enum CenterLine {
+  NONE = "NONE",
+  VERTICAL = "VERTICAL",
+  HORIZONTAL = "HORIZONTAL",
+  CROSS = "CROSS",
+}
+
+/** 타겟 프로그램 */
+export enum TargetProgram {
+  HWP201X = "HWP201X",
+  HWP200X = "HWP200X",
+  MS_WORD = "MS_WORD",
+}
+
+/** 글꼴 계열 */
+export enum FamilyType {
+  /** 없음 */
+  FCAT_UNKNOWN,
+  /** 명조(serif) */
+  FCAT_MYUNGJO,
+  /** 고딕(sans-serif) */
+  FCAT_GOTHIC,
+  /** 굴림(monospace) */
+  FCAT_SSERIF,
+  /** cursive */
+  FCAT_BRUSHSCRIPT,
+  /** cursive */
+  FCAT_DECORATIVE,
+  /** serif */
+  FCAT_NONRECTMJ,
+  /** sans-serif */
+  FCAT_NONRECTGT
 }

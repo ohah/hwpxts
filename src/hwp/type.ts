@@ -715,3 +715,35 @@ export enum CtrlCode {
   /** 덧말 / 글자 겹침 */
   DUTMAL_OVERLAP = 23,
 }
+
+/**
+ * 강조점 종류
+ */
+export enum SymMark {
+  /** 없음 */
+  NONE = "NONE",
+  /** 윗점(0x0307) */
+  DOT_ABOVE = "DOT_ABOVE",
+  /** 윗 링(0x030A) */
+  RING_ABOVE = "RING_ABOVE",
+  /** 0x030C */
+  TILDE = "TILDE",
+  /** 0x0303 */
+  CARON = "CARON",
+  /** 0x302E */
+  SIDE = "SIDE",
+  /** 0x302F */
+  COLON = "COLON",
+  /** 0x0300 */
+  GRAVE_ACCENT = "GRAVE_ACCENT",
+  /** 0x0301 */
+  ACUTE_ACCENT = "ACUTE_ACCENT",
+  /** 0x0302 */
+  CIRCUMFLEX = "CIRCUMFLEX",
+  /** 0x0304 */
+  MACRON = "MACRON",
+  /** 0x0309 */
+  HOOK_ABOVE = "HOOK_ABOVE",
+  /** 0x0323 */
+  DOT_BELOW = "DOT_BELOW",
+}
