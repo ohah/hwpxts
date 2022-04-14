@@ -229,27 +229,27 @@ export const BORDER_FILL = (content: HwpBlob) => {
     leftBorder : {
       type : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
       width : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
-      color : RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint32(0, true)),
+      color : RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true)),
     },
     rightBorder : {
       type : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
       width : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
-      color : RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint32(0, true)),
+      color : RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true)),
     },
     topBorder : {
       type : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
       width : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
-      color : RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint32(0, true)),
+      color : RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true)),
     },
     bottomBorder : {
       type : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
       width : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
-      color : RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint32(0, true)),
+      color : RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true)),
     },
     diagonal : {
       type : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
       width : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
-      color : RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint32(0, true)),
+      color : RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true)),
     },
     
   }; 

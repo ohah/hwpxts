@@ -130,7 +130,7 @@ export class Hwpx extends JSZip {
           Object.keys(this.zip.files).map(async (file) => {
             if (name.includes(file)) {
               // console.log(await this.zip.files[`${file}`].async("string"));
-              document.body.innerHTML += await this.zip.files[`${file}`].async("string")
+              document.body.innerHTML += await this.zip.files[`${file}`].async("string");
               const json = String2Number(new XMLParser(options).parse(await this.zip.files[`${file}`].async("string")))
               sections.push(json);
               // return json;

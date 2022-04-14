@@ -1,5 +1,6 @@
 import { XMLBuilder } from "fast-xml-parser";
 import { SECPR } from "../../hwpx/type/section";
+import { ColPr } from "../../xml/type";
 import { Cursor } from "../cursor";
 import { HwpBlob } from "../type";
 import { Bit } from "../util";
@@ -138,7 +139,7 @@ export const SECTION_DEFINE = (content:HwpBlob) => {
  * @returns 
  * @missing_link 
  */
-export const COLD_DEFINE = (content: HwpBlob) => {
+export const COLD_DEFINE = (content: HwpBlob):ColPr => {
   // console.log('cold_size', content, content.length);
   const c = new Cursor(0);
   /** 속성의 bit */
@@ -183,7 +184,7 @@ export const COLD_DEFINE = (content: HwpBlob) => {
     color : color,
     colCount : colCount
   }
-  return colpr;
+  return colpr as ColPr;
   // const attr2 = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
   return data;
   /** 속성의 bit 16-32 */
