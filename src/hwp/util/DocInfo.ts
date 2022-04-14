@@ -2,7 +2,7 @@ import { XMLBuilder } from "fast-xml-parser";
 import { SECPR } from "../../hwpx/type/section";
 import { FamilyType, LineType1 } from "../../hwpx/type/xml";
 import { Cursor } from "../cursor";
-import { HwpBlob } from "../type";
+import { HwpBlob, SymMark } from "../type";
 import { Bit, Flags, RGB } from "../util";
 
 /**
@@ -316,7 +316,9 @@ export const BORDER_FILL = (content: HwpBlob) => {
 export const CHAR_SHAPE = (content:HwpBlob, version:number) => {
   const text_shape_attr = (shape:number) => {
     const data:any = {};
+    // 기울임
     data.italic = Bit(shape, 0, 0);
+    // 굵기
     data.bold = Bit(shape, 1, 1);
     switch (Bit(shape, 2, 3)) {
       case 0:
@@ -416,38 +418,51 @@ export const CHAR_SHAPE = (content:HwpBlob, version:number) => {
         data.outline.type = "-..-..-..";
         break;
     }
+    // 그림자의 종류
     switch (Bit(shape, 11, 12)) {
       case 0:
-        data.shadow = "none";
+        data.shadow = "NONE";
         break;
       case 1:
-        data.shadow = "di continue";
+        // 개체와 분리된 그림자
+        data.shadow = "DROP";
         break;
       case 2:
-        data.shadow = "continue";
+        // 개체와 연결된 그림자
+        data.shadow = "CONTINUOUS";
         break;
     }
-    data.relief = Bit(shape, 13, 13);
-    data.counter_relief = Bit(shape, 14, 14);
-    data.superscript = Bit(shape, 15, 15);
+    // 양각
+    data.emboss = Bit(shape, 13, 13);
+    // 음각
+    data.engrave = Bit(shape, 14, 14);
+    // 위 첨자
+    data.supscript = Bit(shape, 15, 15);
+    // 아래 첨자
     data.subscript = Bit(shape, 16, 16);
-    data.subscript = Bit(shape, 17, 17);
+    // Reserved
+    data.reserved = Bit(shape, 17, 17);
+    // 취소선 여부
     data.strikethrough = Bit(shape, 18, 20);
+    // 강조점
     switch (Bit(shape, 21, 24)) {
       case 0:
-        data.emphasis = "none";
+        // 없음
+        data.emphasis = SymMark.NONE;
         break;
       case 1:
-        data.emphasis = "default";
+        // 검정 동그라미 강조점
+        data.emphasis = "&#x307;";
         break;
       case 2:
+        // 속 빈 동그라미 강조점
         data.emphasis = "empty circle";
       case 3:
-        data.emphasis = "∨";
+        data.emphasis = "ˇ";
       case 4:
-        data.emphasis = "~";
+        data.emphasis = "˜";
       case 5:
-        data.emphasis = "ㆍ";
+        data.emphasis = " ･";
       case 6:
         data.emphasis = ":";
         break;
@@ -507,7 +522,8 @@ export const CHAR_SHAPE = (content:HwpBlob, version:number) => {
       default:
         break;
     }
-    data.Kerning = Bit(shape, 30, 30);
+    // zjsld
+    data.useKerning = Bit(shape, 30, 30);
     return data;
   }
   // const 
