@@ -1,4 +1,4 @@
-import { RGBColorType } from "../hwpx/type/xml";
+import { NumberType2, RGBColorType } from "../hwpx/type/xml";
 
 type Enumerate<N extends number, Acc extends number[] = []> = Acc['length'] extends N ? Acc[number] : Enumerate<N, [...Acc, Acc['length']]>;
 type Range<F extends number, T extends number> = Exclude<Enumerate<T>, Enumerate<F>>;
@@ -128,6 +128,9 @@ export interface PagePr {
   pageborderfill:PageBorderFill
 }
 
+/**
+ * 
+ */
 
 /**
  * @prefix hp
@@ -142,7 +145,7 @@ export interface PagePr {
 }
 
 export interface AutoNumFormat {
-  type?: string;
+  type?: NumberType2;
   userchar?: string;
   prefixchar?: string;
   suffixchar?: string;
@@ -157,19 +160,32 @@ export interface NoteLine {
 }
 
 export interface NoteSpacing {
-  betweenNotes?: number;
+  betweennotes?: number;
   belowLine?: number;
   aboveLine?: number;
 }
 
 export interface Numbering {
-  type?: string;
-  newNum?: number;
+  //앞 구역에 이어서, 현재구역부터 새로 시작, 쪽마다 새로 시작
+  type?: "CONTINUOUS" | "ON_SECTION" | "ON_PAGE";
+  newnum?: number;
 }
 
 export interface Placement {
-  place?: string;
-  beneathText?: number;
+  /** 
+   * 헤더
+   * 한 페이지 내에서 각주를 다단에 어떻게 위치 시킬지 표시함 
+   * 각 단마다 따로 배열
+   * 통단으로 배열
+   * 가장 오른쪽 단에 배열
+   * 푸터
+   * 한 패이지 내에서 미주를 다단에 어떻게 위치시킬지 표시한다
+   * 문서의 마지막
+   * 구역의 마지막
+  */
+  place?: "EACH_COLUMN" | "MERGED_COLUMN" | "MERGED_COLUMN" | "END_OF_DOCUMENT" | "END_OF_SECTION";
+  /** 텍스트에 이어 바로 출력할지 여부 */
+  beneathtext?: number;
 }
 /**
  * @prefix hp
@@ -190,13 +206,27 @@ export interface Margin {
  * pageborderfill
  */
 export interface PageBorderFill {
+  // 테두리 배경 위치
   offset?: Offset;
-  type?: string;
+  // 양쪽, 짝수쪽, 홀수쪽
+  type?: "BOTH" | "EVEN" | "ODD";
+  // 테두리/배경 아이디 참조 값
   borderFillIDRef?: number;
-  textBorder?: string;
+  /**
+   * 쪽 테두리 위치 기준
+   * CONTENT : 본문 기준
+   * PAPER : 종이 기준
+   */
+  textBorder?: "CONTENT" | "PAPER";
+  // 머리말 포함 여부
   headerInside?: number;
+  // 꼬리말 포함 여부
   footerInside?: number;
-  fillArea?: string;
+  /**
+   * 채울 영역
+   * 종이, 쪽, 테두리 
+   **/
+  fillArea?: "PAPER" | "PAGE" | "BORDER";
 }
 
 /**
@@ -218,7 +248,6 @@ export interface Run {
   charpridref?:number
   secpr?:Secpr
 }
-
 
 /**
  * @prefix hp

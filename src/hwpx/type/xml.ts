@@ -160,3 +160,44 @@ export enum FamilyType {
   /** sans-serif */
   FCAT_NONRECTGT
 }
+
+/** NumberType */
+export enum NumberType2 {
+  DIGIT = "DIGIT",
+  /** 동그라미 쳐진 1,2,3 */
+  CIRCLED_DIGIT = "CIRCLED_DIGIT",
+  /** I, II, III */
+  ROMAN_CAPITAL = "ROMAN_CAPITAL",
+  /** i, ii, iii */
+  ROMAN_SMALL = "ROMAN_SMALL",
+  /** A, B, C */
+  LATIN_CAPITAL = "LATIN_CAPITAL",
+  /** a, b, c */
+  LATIN_SMALL = "LATIN_SMALL",
+  /** 동그라미 쳐 진 A,B,C */
+  CIRCLED_LATIN_CAPITAL = "CIRCLED_LATIN_CAPITAL",
+  /** 동그라미 쳐 진 a,b,c */
+  CIRCLED_LATIN_SMALL = "CIRCLED_LATIN_SMALL",
+  /** 가, 나, 다 */
+  HANGUL_SYLLABLE = "HANGUL_SYLLABLE",
+  /** 동그라미 쳐진 가, 나,다 */
+  CIRCLED_HANGUL_SYLLABLE = "CIRCLED_HANGUL_SYLLABLE",
+  /** ㄱ, ㄴ, ㄷ */
+  HANGUL_JAMO = "HANGUL_JAMO",
+  /** 동그라미 쳐진 ㄱ, ㄴ, ㄷ */
+  CIRCLED_HANGUL_JAMO = "CIRCLED_HANGUL_JAMO",
+  /** 일, 이, 삼 */
+  HANGUL_PHONETIC = "HANGUL_PHONETIC",
+  /** 一, 二, 三 */
+  IDEOGRAPH = "IDEOGRAPH",
+  /** 동그라미 쳐진 一, 二, 三 */
+  CIRCLED_IDEOGRAPH = "CIRCLED_IDEOGRAPH",
+  /** 갑, 을, 병, 정, 무, 기, 경, 신, 임, 계 */
+  DACAGON_CIRCLE = "DACAGON_CIRCLE",
+  /** 甲, 乙, 丙, 丁, 戊, 己, 庚, 辛, 壬, 癸, */
+  DAGON_CIRCLE_HANJA = "DAGON_CIRCLE_HANJA",
+  /** 4가지 문자가 차례로 반복 */
+  SYMBOL = "SYMBOL",
+  /** 사용자 지정 문자 반복 */
+  USER_CHAR = "USER_CHAR",
+}

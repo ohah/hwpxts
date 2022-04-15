@@ -5,7 +5,7 @@ import { Fontface, Header } from "../type";
 import { buf2hex, CTRL_HEADER, HwpHeader, HwpReader, LINE_SEG, PAGE_DEF, PARA_HEADER, PARA_TEXT, readRecord } from "./util";
 import { Cursor } from "./cursor";
 import { Section } from "../hwpx/type/section";
-import { BIN_DATA, BORDER_FILL, DOCUMENT_PROPERTIES, FACE_NAME, ID_MAPPINGS } from "./util/DocInfo";
+import { BIN_DATA, BORDER_FILL, CHAR_SHAPE, DOCUMENT_PROPERTIES, FACE_NAME, ID_MAPPINGS } from "./util/DocInfo";
 export class Hwp {
   #cfb: CFB.CFB$Entry[];
   #hwpx: {
@@ -174,7 +174,7 @@ export class Hwp {
           c.move(size - (end - start));
           break;
         case HWPTAG.CHAR_SHAPE:
-          result.push({name : "CHAR_SHAPE", tag_id : tag_id, size : size, content : ID_MAPPINGS(content.slice(c.pos, c.move(size)), this.version)});
+          result.push({name : "CHAR_SHAPE", tag_id : tag_id, size : size, content : CHAR_SHAPE(content.slice(c.pos, c.move(size)), this.version)});
           // result.push({name : "CHAR_SHAPE", size : size});
           var end = c.pos;
           // console.log('FONT_NAME',data)

@@ -522,8 +522,8 @@ export const CHAR_SHAPE = (content:HwpBlob, version:number) => {
       default:
         break;
     }
-    // zjsld
     data.useKerning = Bit(shape, 30, 30);
+    console.log("CHARACTER_SHAPE", data);
     return data;
   }
   // const 
@@ -612,4 +612,6 @@ export const CHAR_SHAPE = (content:HwpBlob, version:number) => {
     //취소선 색
     data.shadeColor = RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true));
   }
+  console.log("CHAR_SHAPE", data);
+  return data;
 }
