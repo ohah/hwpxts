@@ -6,7 +6,7 @@ import { buf2hex, CTRL_HEADER, HwpHeader, HwpReader, LINE_SEG, PAGE_DEF, PARA_HE
 import { Cursor } from "./cursor";
 import { Section } from "../hwpx/type/section";
 import { BIN_DATA, BORDER_FILL, CHAR_SHAPE, DOCUMENT_PROPERTIES, FACE_NAME, ID_MAPPINGS, TAB_DEF } from "./util/DocInfo";
-import { FACE_NAME_ID } from "./util/setID";
+import { FONT_FACES } from "./util/SetID"
 export class Hwp {
   #cfb: CFB.CFB$Entry[];
   #hwpx: {
@@ -275,7 +275,8 @@ export class Hwp {
           break;
       }
     }
-    FACE_NAME_ID(result);
+    const fontfaces = FONT_FACES(result);
+    console.log('FONT_FACES', fontfaces)
     // return this.hwp.find((entry)=>entry.name === "DocInfo").content;
     return result;
   }

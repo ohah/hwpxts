@@ -1,18 +1,88 @@
 import { HWPTAG } from "../type";
 
-interface docinfos {
+interface DocInfos {
   name : string,
   tag_id : HWPTAG,
   size : number,
   content : any
 }
 
+export const GET_HWPTAG = (HWPTAG : HWPTAG, content:DocInfos[]) => {
+  return content.find((item) => item.tag_id === HWPTAG).content;
+}
+export const GET_HWPTAG_LIST = (HWPTAG : HWPTAG, content:DocInfos[]) => {
+  const result = content.filter((item) => {
+    if(item.tag_id === HWPTAG) {
+      return item.content;
+    }
+  });
+  return result.map((item) => {return item.content});
+}
+
 /**
  * FACE_NAME 아이디 배열화
  * @param param0 
  */
-export const FACE_NAME_ID = (content:docinfos[]) => {
-  const ID_MAPPINGS = content.find((item) => item.tag_id === HWPTAG.ID_MAPPINGS).content;
+export const FONT_FACES = (content:DocInfos[]) => {
+  const ID_MAPPINGS = GET_HWPTAG(HWPTAG.ID_MAPPINGS, content);
+  const FACE_NAMES = GET_HWPTAG_LIST(HWPTAG.FACE_NAME, content) ;
   const { HANGUL, LATIN, HANJA, JAPANESE, OTHER} = ID_MAPPINGS.cnt;
-  console.log('FACE_NAME_ID', ID_MAPPINGS.cnt)
+  console.log('FACE_NAMES', FACE_NAMES);
+  let j = 0;
+  const result = Object.keys(ID_MAPPINGS.cnt).map((lang, i) => {
+    const fontCnt = Object.values(ID_MAPPINGS.cnt)[i];
+    const fontface = [];
+    for (let k = 0; k < fontCnt; k++) {
+      const font = FACE_NAMES[j];
+      font.id = k;
+      fontface.push(font);
+      j++;
+    }
+    return {
+      font : fontface,
+      lang : lang,
+      fontCnt : fontCnt,
+    }
+  });
+  return result;
+}
+/**
+ * BORDER_FILL 아이디 배열화
+ * @param param0 
+ */
+export const BORDER_FILLS = (content:DocInfos[]) => {
+  const ID_MAPPINGS = GET_HWPTAG(HWPTAG.ID_MAPPINGS, content);
+  const FACE_NAMES = GET_HWPTAG_LIST(HWPTAG.BORDER_FILL, content) ;
+  const { HANGUL, LATIN, HANJA, JAPANESE, OTHER} = ID_MAPPINGS.cnt;
+  console.log('FACE_NAMES', FACE_NAMES);
+  let j = 0;
+  const result = Object.keys(ID_MAPPINGS.cnt).map((lang, i) => {
+    const fontCnt = Object.values(ID_MAPPINGS.cnt)[i];
+    const fontface = [];
+    for (let k = 0; k < fontCnt; k++) {
+      const font = FACE_NAMES[j];
+      font.id = k;
+      fontface.push(font);
+      j++;
+    }
+    return {
+      font : fontface,
+      lang : lang,
+      fontCnt : fontCnt,
+    }
+  });
+  return result;
+}
+/**
+ * CHAR 아이디 배열화
+ * @hwpx {hh:charPropertis}
+ * @param param0 
+ */
+export const CHAR_SHAPE = (content:DocInfos[]) => {
+  const ID_MAPPINGS = GET_HWPTAG(HWPTAG.ID_MAPPINGS, content);
+  const CHAR_SHAPES = GET_HWPTAG_LIST(HWPTAG.CHAR_SHAPE, content) ;
+  const { HANGUL, LATIN, HANJA, JAPANESE, OTHER} = ID_MAPPINGS.cnt;
+  // console.log('FACE_NAMES', FACE_NAMES);
+  let j = 0;
+  // return result;
 }

@@ -150,30 +150,60 @@ export const FACE_NAME = (content: HwpBlob) => {
   }
   if(hasAttribute) {
     data.typeinfo = {
-      /** 글꼴 계열 */
+      /** 
+       * 글꼴 계열 
+       * @type {string}
+       * */
       familyType : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
-      /** 세리프 유형 */
+      /** 
+       * 세리프 유형
+       * @type {string}
+       *  */
       serifStyle : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
-      /** 굵기 */
+      /** 
+       * 굵기 
+       * @type {integer}
+       * */
       weight : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
-      /** 비례 */
+      /** 
+       * 비례 
+       * @type {integer}
+       * */
       proportion : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
-      /** 대조 */
+      /** 
+       * 대조 
+       * @type {integer}
+       * */
       contrast : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
-      /** 스트로크 편차 */
+      /** 
+       * 스트로크 편차 
+       * @type {integer}
+       * */
       strokeVariation : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
-      /** 자획 유형 */
+      /** 
+       * 자획 유형 
+       * @type {boolean}
+       * */
       aramStyle : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
-      /** 글자형 */
+      /** 
+       * 글자형 
+       * @type {boolean}
+       * */
       letterform : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
-      /** 중간선 */
+      /** 
+       * 중간선 
+       * @type {boolean}
+       * */
       mideline : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
-      /** X 높이 */
+      /** 
+       * X 높이
+       * @type {integer} 
+       * */
       xHeight : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
     }
   }
   const Idx = Object.values(FamilyType).find((key) => key === data.typeinfo.familyType);
-  data.typeinfo = Object.values(FamilyType)[Idx];
+  data.typeinfo.familyType = Object.values(FamilyType)[Idx];
   // if(hasDefault) {
   //   data.default_font = {
   //     length : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getInt16(0, true),
@@ -184,7 +214,7 @@ export const FACE_NAME = (content: HwpBlob) => {
   //   data.isEmbedded = 0;
   // }
   data.isEmbedded = 0;
-  console.log('FACE_NAME', data);
+  // console.log('FACE_NAME', data);
   return data;
 }
 
@@ -320,9 +350,15 @@ export const CHAR_SHAPE = (content:HwpBlob, version:number) => {
     data.italic = Bit(shape, 0, 0);
     // 굵기
     data.bold = Bit(shape, 1, 1);
+    data.outline = {
+      type : false,
+    }
+    data.underline = {
+      type : false,
+    };
     switch (Bit(shape, 2, 3)) {
       case 0:
-        data.underline.type = false;
+        data.underline.type = "NONE";
         break;
       case 1:
         data.underline.type = "BOTTOM";
@@ -418,18 +454,19 @@ export const CHAR_SHAPE = (content:HwpBlob, version:number) => {
         data.outline.type = "-..-..-..";
         break;
     }
+    data.shadow = {};
     // 그림자의 종류
     switch (Bit(shape, 11, 12)) {
       case 0:
-        data.shadow = "NONE";
+        data.shadow.type = "NONE";
         break;
       case 1:
         // 개체와 분리된 그림자
-        data.shadow = "DROP";
+        data.shadow.type = "DROP";
         break;
       case 2:
         // 개체와 연결된 그림자
-        data.shadow = "CONTINUOUS";
+        data.shadow.type = "CONTINUOUS";
         break;
     }
     // 양각
@@ -443,7 +480,8 @@ export const CHAR_SHAPE = (content:HwpBlob, version:number) => {
     // Reserved
     data.reserved = Bit(shape, 17, 17);
     // 취소선 여부
-    data.strikethrough = Bit(shape, 18, 20);
+    data.strikeout = {};
+    data.strikeout.type = Bit(shape, 18, 20);
     // 강조점
     switch (Bit(shape, 21, 24)) {
       case 0:
@@ -469,61 +507,61 @@ export const CHAR_SHAPE = (content:HwpBlob, version:number) => {
     }
     switch (Bit(shape, 21, 24)) {
       case 0:
-        data.strikethrough_shape = "solid";
+        data.strikeout.shape = "solid";
         break;
       case 1:
-        data.strikethrough_shape = "long dot";
+        data.strikeout.shape = "long dot";
         break;
       case 2:
-        data.strikethrough_shape = "dot";
+        data.strikeout.shape = "dot";
         break;
       case 3:
-        data.strikethrough_shape = "-.-.-.-.";
+        data.strikeout.shape = "-.-.-.-.";
         break;
       case 4:
-        data.strikethrough_shape = "-..-..-..";
+        data.strikeout.shape = "-..-..-..";
         break;
       case 5:
-        data.strikethrough_shape = "long dash loop";
+        data.strikeout.shape = "long dash loop";
         break;
       case 6:
-        data.strikethrough_shape = "big dot loop";
+        data.strikeout.shape = "big dot loop";
         break;
       case 7:
-        data.strikethrough_shape = "second";
+        data.strikeout.shape = "second";
         break;
       case 8:
-        data.strikethrough_shape = "solid bold";
+        data.strikeout.shape = "solid bold";
         break;
       case 9:
-        data.strikethrough_shape = "bold solid";
+        data.strikeout.shape = "bold solid";
         break;
       case 10:
-        data.strikethrough_shape = "solid bold solid";
+        data.strikeout.shape = "solid bold solid";
         break;
       case 11:
-        data.strikethrough_shape = "wave";
+        data.strikeout.shape = "wave";
         break;
       case 12:
-        data.strikethrough_shape = "wave second";
+        data.strikeout.shape = "wave second";
         break;
       case 13:
-        data.strikethrough_shape = "bold 3d";
+        data.strikeout.shape = "bold 3d";
         break;
       case 14:
-        data.strikethrough_shape = "bold 3d(liquid)";
+        data.strikeout.shape = "bold 3d(liquid)";
         break;
       case 15:
-        data.strikethrough_shape = "3d monorail";
+        data.strikeout.shape = "3d monorail";
         break;
       case 16:
-        data.strikethrough_shape = "3d monorail(liquid)";
+        data.strikeout.shape = "3d monorail(liquid)";
         break;
       default:
         break;
     }
     data.useKerning = Bit(shape, 30, 30);
-    console.log("CHARACTER_SHAPE", data);
+    // console.log("CHARACTER_SHAPE", data);
     return data;
   }
   // const 
@@ -586,23 +624,32 @@ export const CHAR_SHAPE = (content:HwpBlob, version:number) => {
     // 기준 크기
     standard_size : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
   }
+  data.underline = {};
+  data.shadow = {};
   // 속성
-  const font_attr = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true);
-
+  const font_attr = text_shape_attr(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true));
+  console.log('font_attr', font_attr);
+  
+  // data = {
+  //   // ...text_shape_attr(font_attr),
+  //   ...data,
+  // }
   // 그림자 간격
-  data.shadow_space = {
-    x : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getInt8(0),
-    y : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getInt8(0),
-  };
-  data.color = {
-    //글자 색
-    font : RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true)),
-    //밑줄 색
-    underline : RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true)),
-    //음영 색
-    shade : RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true)),
-    //그림자 색
-    shadow : RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true)),
+  data.shadow.offsetX = new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getInt8(0);
+  data.shadow.offsetY = new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getInt8(0);
+  //글자 색
+  data.textColor =  RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true));
+  //밑줄 색
+  if(font_attr.underline.type !== "NONE") {
+    data.underline = font_attr.underline;
+    data.underline.color = RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true));
+  }
+  //음영 색
+  data.shadeColor = RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true));
+  //그림자 색
+  if(font_attr.shadow.type !== "NONE") {
+    data.shadow = font_attr.shadow;
+    data.shadow.color = RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true));
   }
   if(version >= 5021) {
     //글자 테두리/배경 ID
@@ -610,7 +657,9 @@ export const CHAR_SHAPE = (content:HwpBlob, version:number) => {
   }
   if(version >= 5030) {
     //취소선 색
-    data.shadeColor = RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true));
+    if(font_attr.strikeout.type) {
+      data.strikeout.color = RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true));
+    }
   }
   console.log("CHAR_SHAPE", data);
   return data;
@@ -680,7 +729,7 @@ export const STYLE = (content:HwpBlob) => {
   data.para_shape_id = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
   data.char_shape_id = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
   data.unknown = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
-  console.log("STYLE", data);
+  // console.log("STYLE", data);
   return data;
 }
 /**

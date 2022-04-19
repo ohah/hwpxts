@@ -27,9 +27,9 @@ export const readRecord = (data: Uint8Array) => {
  * Flags
  * @param bits 
  * @param position 
- * @returns 
+ * @returns {boolean}
  */
-export const Flags = (bits:number, position:number) => {
+export const Flags = (bits:number, position:number):boolean => {
   const mask = 1 << position;
   return (bits & mask) === mask;
 }
@@ -37,7 +37,7 @@ export const Flags = (bits:number, position:number) => {
 /**
  * 
  * @param value 
- * @returns 
+ * @returns {type, compress, status}
  */
 export const BinaryRecord = (value) => {
   const Type = Bit(value, 0x00, 0x03);
@@ -50,7 +50,7 @@ export const BinaryRecord = (value) => {
  * @param mask(uint8Array)
  * @param start(start)
  * @param end(end)
- * @returns 
+ * @returns {number}
  */
 export const Bit = (mask:number, start:number, end:number) => {
   const target = mask >> start
@@ -64,22 +64,22 @@ export const Bit = (mask:number, start:number, end:number) => {
 /**
  * 색깔 값을 가져옴
  * @param value 
- * @returns 
+ * @returns {String #RRGGBB}
  */
-export const RGB = (value:number) => {
-  return [
-    Bit(value, 0, 7),
-    Bit(value, 8, 15),
-    Bit(value, 16, 24),
-  ]
+export const RGB = (value:number):string => {
+  return `#${[
+    Bit(value, 0, 7).toString(16).padStart(2, '0'),
+    Bit(value, 8, 15).toString(16).padStart(2, '0'),
+    Bit(value, 16, 24).toString(16).padStart(2, '0'),
+  ].join("")}`
 }
 
 /**
  * Uint8Array -> hex
  * @param buffer 
- * @returns hex code
+ * @returns {hex String}
  */
-export const buf2hex = (buffer: HwpBlob) => {
+export const buf2hex = (buffer: HwpBlob):string => {
   return [...new Uint8Array(buffer)].map(x => x.toString(16).padStart(2, '0')).join(' ').toUpperCase();
 }
 /**
