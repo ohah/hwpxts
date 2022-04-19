@@ -49,7 +49,7 @@ export enum HWPTAG {
    * */
   TAB_DEF = HWPTAG.BEGIN + 6,
   /**
-   * 탭 정의(표 36 참조)
+   * 번호 정의(표 36 참조)
    * @length 14
    * @level 1
    * */

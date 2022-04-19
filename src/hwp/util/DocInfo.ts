@@ -615,3 +615,79 @@ export const CHAR_SHAPE = (content:HwpBlob, version:number) => {
   console.log("CHAR_SHAPE", data);
   return data;
 }
+
+/**
+ * TAB_DEF
+ * 탭 정보
+ * @param {Uint8Array} content
+ */
+export const TAB_DEF = (content:HwpBlob) => {
+  const size = content.length;
+  const c = new Cursor(0);
+  const attr = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true);
+  const count = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt16(0, true);
+  console.log('TAB_DEF', count, size);
+}
+/**
+ * NUMBERING
+ * 탭 정보
+ * @param {Uint8Array} content
+ */
+export const NUMBERING = (content:HwpBlob) => {
+  const size = content.length;
+  const c = new Cursor(0);
+}
+/**
+ * 문단 모양(표 43 참조)
+ * @length 54
+ * @level 1
+ * @param {Uint8Array} content
+ */
+export const BULLET = (content:HwpBlob) => {
+  const size = content.length;
+  const c = new Cursor(0);
+}
+/**
+ * 문단 모양(표 43 참조)
+ * @length 54
+ * @level 1
+ * @param {Uint8Array} content
+ */
+export const PARA_SHAPE = (content:HwpBlob) => {
+  const size = content.length;
+  const c = new Cursor(0);
+}
+
+/**
+ * 스타일(표 47 참조)
+ * @length 54
+ * @level 1
+ * @param {Uint8Array} content
+ * @returns {Style}
+ */
+export const STYLE = (content:HwpBlob) => {
+  const c = new Cursor(0);
+  const size = content.length;
+  const styleSize = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
+  const data:any = {};
+
+  data.local.name = new TextDecoder("utf-16le").decode(new Uint8Array(content.slice(c.pos, c.move(2 * styleSize))));
+  data.en.size = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
+  data.en.name = new TextDecoder("utf-16le").decode(new Uint8Array(content.slice(c.pos, c.move(2 * data.en.size))));
+  data.property = new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0);
+  data.next_style_id = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
+  data.lang_id = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
+  data.para_shape_id = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
+  data.char_shape_id = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
+  data.unknown = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
+  console.log("STYLE", data);
+  return data;
+}
+/**
+ * 문서 임의의 데이터(표 49 참조)
+ * @length 54
+ * @level 1
+ * @param {Uint8Array} content
+ */
+export const DOC_DATA = (content:HwpBlob) => {
+}

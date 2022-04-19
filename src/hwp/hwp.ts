@@ -5,7 +5,8 @@ import { Fontface, Header } from "../type";
 import { buf2hex, CTRL_HEADER, HwpHeader, HwpReader, LINE_SEG, PAGE_DEF, PARA_HEADER, PARA_TEXT, readRecord } from "./util";
 import { Cursor } from "./cursor";
 import { Section } from "../hwpx/type/section";
-import { BIN_DATA, BORDER_FILL, CHAR_SHAPE, DOCUMENT_PROPERTIES, FACE_NAME, ID_MAPPINGS } from "./util/DocInfo";
+import { BIN_DATA, BORDER_FILL, CHAR_SHAPE, DOCUMENT_PROPERTIES, FACE_NAME, ID_MAPPINGS, TAB_DEF } from "./util/DocInfo";
+import { FACE_NAME_ID } from "./util/setID";
 export class Hwp {
   #cfb: CFB.CFB$Entry[];
   #hwpx: {
@@ -181,7 +182,7 @@ export class Hwp {
           c.move(size - (end - start));
           break;
         case HWPTAG.TAB_DEF:
-          result.push({name : "TAB_DEF", size : size});
+          result.push({name : "TAB_DEF", size : size, content : TAB_DEF(content.slice(c.pos, c.move(size)))});
           var end = c.pos;
           // console.log('FONT_NAME',data)
           c.move(size - (end - start));
@@ -229,7 +230,7 @@ export class Hwp {
           c.move(size - (end - start));
           break;
         case HWPTAG.DOC_DATA :
-          result.push({name : "DOC_DATA  ", size : size});
+          result.push({name : "DOC_DATA", size : size});
           var end = c.pos;
           // console.log('FONT_NAME',data)
           c.move(size - (end - start));
@@ -274,6 +275,7 @@ export class Hwp {
           break;
       }
     }
+    FACE_NAME_ID(result);
     // return this.hwp.find((entry)=>entry.name === "DocInfo").content;
     return result;
   }
