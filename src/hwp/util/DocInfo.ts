@@ -3,7 +3,7 @@ import { SECPR } from "../../hwpx/type/section";
 import { FamilyType, LineType1 } from "../../hwpx/type/xml";
 import { Cursor } from "../cursor";
 import { HwpBlob, SymMark } from "../type";
-import { Bit, Flags, RGB } from "../util";
+import { Bit, Flags, RGB, setWidth } from "../util";
 
 /**
  * 문서 속성
@@ -227,7 +227,6 @@ export const BORDER_FILL = (content: HwpBlob) => {
   const c = new Cursor(0);
   const attr = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
   const data:any = {
-    id : 0,
     threeD : Bit(attr, 0, 0),
     shadow : Bit(attr, 1, 1),
     slash : {
@@ -256,29 +255,30 @@ export const BORDER_FILL = (content: HwpBlob) => {
       /** 대각선 역방향 여부(180 회전) */
       isCounter : Bit(attr, 12, 12),
     },
+    centerLine : Bit(attr, 13, 13),
     leftBorder : {
       type : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
-      width : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
+      width : setWidth(new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0)),
       color : RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true)),
     },
     rightBorder : {
       type : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
-      width : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
+      width : setWidth(new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0)),
       color : RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true)),
     },
     topBorder : {
       type : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
-      width : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
+      width : setWidth(new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0)),
       color : RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true)),
     },
     bottomBorder : {
       type : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
-      width : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
+      width : setWidth(new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0)),
       color : RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true)),
     },
     diagonal : {
       type : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
-      width : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
+      width : setWidth(new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0)),
       color : RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true)),
     },
     
@@ -337,6 +337,7 @@ export const BORDER_FILL = (content: HwpBlob) => {
     default:
       break;
   }
+  return data;
 }
 
 /**
@@ -624,11 +625,9 @@ export const CHAR_SHAPE = (content:HwpBlob, version:number) => {
     // 기준 크기
     standard_size : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
   }
-  data.underline = {};
   data.shadow = {};
   // 속성
   const font_attr = text_shape_attr(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true));
-  console.log('font_attr', font_attr);
   
   // data = {
   //   // ...text_shape_attr(font_attr),
@@ -641,8 +640,11 @@ export const CHAR_SHAPE = (content:HwpBlob, version:number) => {
   data.textColor =  RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true));
   //밑줄 색
   if(font_attr.underline.type !== "NONE") {
+    data.underline = {};
     data.underline = font_attr.underline;
     data.underline.color = RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true));
+  } else {
+    c.move(4);
   }
   //음영 색
   data.shadeColor = RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true));
@@ -650,6 +652,9 @@ export const CHAR_SHAPE = (content:HwpBlob, version:number) => {
   if(font_attr.shadow.type !== "NONE") {
     data.shadow = font_attr.shadow;
     data.shadow.color = RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true));
+  } else {
+    delete data.shadow;
+    c.move(4);
   }
   if(version >= 5021) {
     //글자 테두리/배경 ID
@@ -661,7 +666,6 @@ export const CHAR_SHAPE = (content:HwpBlob, version:number) => {
       data.strikeout.color = RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true));
     }
   }
-  console.log("CHAR_SHAPE", data);
   return data;
 }
 
@@ -675,7 +679,6 @@ export const TAB_DEF = (content:HwpBlob) => {
   const c = new Cursor(0);
   const attr = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true);
   const count = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt16(0, true);
-  console.log('TAB_DEF', count, size);
 }
 /**
  * NUMBERING

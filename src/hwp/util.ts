@@ -64,9 +64,17 @@ export const Bit = (mask:number, start:number, end:number) => {
 /**
  * 색깔 값을 가져옴
  * @param value 
+ * @byte 32byte
+ * @length 4
  * @returns {String #RRGGBB}
  */
-export const RGB = (value:number):string => {
+export const RGB = (value:number) => {
+  // return [
+  //   Bit(value, 0, 7),
+  //   Bit(value, 8, 15),
+  //   Bit(value, 16, 24),
+  //   // Bit(value, 25, 32),
+  // ];
   return `#${[
     Bit(value, 0, 7).toString(16).padStart(2, '0'),
     Bit(value, 8, 15).toString(16).padStart(2, '0'),
@@ -511,4 +519,62 @@ export const isCommon = (object:any) => {
  */
  export const isElement = (object:any) => {
   return [CTRL_ID.line, CTRL_ID.rec, CTRL_ID.ell, CTRL_ID.arc, CTRL_ID.pol, CTRL_ID.cur, CTRL_ID.eqed, CTRL_ID.cur, CTRL_ID.pic, CTRL_ID.ole, CTRL_ID.con, CTRL_ID.gso].includes(object);
+}
+
+/**
+ * setWidth
+ * @param {number} width
+ * @returns {number + "mm"}
+ */
+export const setWidth = (width:number):number => {
+  switch(width) {
+    case 0:
+      return 0.1;
+    case 1:
+      return 0.12;
+    case 2:
+      return 0.15;
+    case 3:
+      return 0.2;
+    case 4:
+      return 0.25;
+    case 5:
+      return 0.3;
+    case 6:
+      return 0.4;
+    case 7:
+      return 0.5;
+    case 8:
+      return 0.6;
+    case 9:
+      return 0.7;
+    case 10:
+      return 1.0;
+    case 11:
+      return 1.5;
+    case 12:
+      return 2.0;
+    case 13:
+      return 3.0;
+    case 14:
+      return 4.0;
+    case 15:
+      return 5.0;
+  }
+}
+
+/**
+ * 대각선 종류
+ * @param {number} type
+ * @returns {string} Slash | BackSlash | CrookedSlash
+ */
+export const diagonalType = (type:number):string => {
+  switch(type) {
+    case 0:
+      return "Slash";
+    case 1:
+      return "BackSlash";
+    case 2:
+      return "CrookedSlash";
+  }
 }

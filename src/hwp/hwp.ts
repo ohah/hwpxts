@@ -6,7 +6,7 @@ import { buf2hex, CTRL_HEADER, HwpHeader, HwpReader, LINE_SEG, PAGE_DEF, PARA_HE
 import { Cursor } from "./cursor";
 import { Section } from "../hwpx/type/section";
 import { BIN_DATA, BORDER_FILL, CHAR_SHAPE, DOCUMENT_PROPERTIES, FACE_NAME, ID_MAPPINGS, TAB_DEF } from "./util/DocInfo";
-import { FONT_FACES } from "./util/SetID"
+import { BORDER_FILLS, CHAR_SHAPES, FONT_FACES } from "./util/SetID"
 export class Hwp {
   #cfb: CFB.CFB$Entry[];
   #hwpx: {
@@ -178,7 +178,6 @@ export class Hwp {
           result.push({name : "CHAR_SHAPE", tag_id : tag_id, size : size, content : CHAR_SHAPE(content.slice(c.pos, c.move(size)), this.version)});
           // result.push({name : "CHAR_SHAPE", size : size});
           var end = c.pos;
-          // console.log('FONT_NAME',data)
           c.move(size - (end - start));
           break;
         case HWPTAG.TAB_DEF:
@@ -276,7 +275,9 @@ export class Hwp {
       }
     }
     const fontfaces = FONT_FACES(result);
-    console.log('FONT_FACES', fontfaces)
+    const charPr = CHAR_SHAPES(result);
+    const borderFill = BORDER_FILLS(result);
+    console.log('borderFill', borderFill)
     // return this.hwp.find((entry)=>entry.name === "DocInfo").content;
     return result;
   }

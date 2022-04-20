@@ -27,7 +27,6 @@ export const FONT_FACES = (content:DocInfos[]) => {
   const ID_MAPPINGS = GET_HWPTAG(HWPTAG.ID_MAPPINGS, content);
   const FACE_NAMES = GET_HWPTAG_LIST(HWPTAG.FACE_NAME, content) ;
   const { HANGUL, LATIN, HANJA, JAPANESE, OTHER} = ID_MAPPINGS.cnt;
-  console.log('FACE_NAMES', FACE_NAMES);
   let j = 0;
   const result = Object.keys(ID_MAPPINGS.cnt).map((lang, i) => {
     const fontCnt = Object.values(ID_MAPPINGS.cnt)[i];
@@ -51,38 +50,22 @@ export const FONT_FACES = (content:DocInfos[]) => {
  * @param param0 
  */
 export const BORDER_FILLS = (content:DocInfos[]) => {
-  const ID_MAPPINGS = GET_HWPTAG(HWPTAG.ID_MAPPINGS, content);
-  const FACE_NAMES = GET_HWPTAG_LIST(HWPTAG.BORDER_FILL, content) ;
-  const { HANGUL, LATIN, HANJA, JAPANESE, OTHER} = ID_MAPPINGS.cnt;
-  console.log('FACE_NAMES', FACE_NAMES);
-  let j = 0;
-  const result = Object.keys(ID_MAPPINGS.cnt).map((lang, i) => {
-    const fontCnt = Object.values(ID_MAPPINGS.cnt)[i];
-    const fontface = [];
-    for (let k = 0; k < fontCnt; k++) {
-      const font = FACE_NAMES[j];
-      font.id = k;
-      fontface.push(font);
-      j++;
-    }
-    return {
-      font : fontface,
-      lang : lang,
-      fontCnt : fontCnt,
-    }
+  // const ID_MAPPINGS = GET_HWPTAG(HWPTAG.ID_MAPPINGS, content);
+  // const FACE_NAMES = GET_HWPTAG_LIST(HWPTAG.BORDER_FILL, content) ;
+  // const { HANGUL, LATIN, HANJA, JAPANESE, OTHER} = ID_MAPPINGS.cnt;
+  return GET_HWPTAG_LIST(HWPTAG.BORDER_FILL, content).map((item, i) => {
+    item.id = i + 1;
+    return item;
   });
-  return result;
 }
 /**
  * CHAR 아이디 배열화
  * @hwpx {hh:charPropertis}
- * @param param0 
+ * @param {DocInfos} content
  */
-export const CHAR_SHAPE = (content:DocInfos[]) => {
-  const ID_MAPPINGS = GET_HWPTAG(HWPTAG.ID_MAPPINGS, content);
-  const CHAR_SHAPES = GET_HWPTAG_LIST(HWPTAG.CHAR_SHAPE, content) ;
-  const { HANGUL, LATIN, HANJA, JAPANESE, OTHER} = ID_MAPPINGS.cnt;
-  // console.log('FACE_NAMES', FACE_NAMES);
-  let j = 0;
-  // return result;
+export const CHAR_SHAPES = (content:DocInfos[]) => {
+  return GET_HWPTAG_LIST(HWPTAG.CHAR_SHAPE, content).map((item, i) => {
+    item.id = i;
+    return item;
+  });
 }
