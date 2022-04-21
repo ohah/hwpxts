@@ -564,7 +564,7 @@ export const setWidth = (width:number):number => {
 }
 
 /**
- * 대각선 종류
+ * 테두리선의 종류
  * @param {number} type
  * @returns {string} Slash | BackSlash | CrookedSlash
  */
@@ -576,5 +576,22 @@ export const diagonalType = (type:number):string => {
       return "BackSlash";
     case 2:
       return "CrookedSlash";
+  }
+}
+/**
+ * 대각선의 정보
+ * @param {number} type
+ * @returns {string} CENTER | CENTER_BELOW | CENTER_ABOVE | ALL
+ */
+export const slashType = (type:number):string => {
+  switch(type) {
+    case 0:
+      return "CENTER";
+    case 1:
+      return "CENTER_BELOW";
+    case 2:
+      return "CENTER_ABOVE";
+    case 3:
+      return "ALL";
   }
 }

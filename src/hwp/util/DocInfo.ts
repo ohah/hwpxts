@@ -220,6 +220,7 @@ export const FACE_NAME = (content: HwpBlob) => {
 
 /**
  * 테두리/배경
+ * borderFills
  * @param content 
  */
 export const BORDER_FILL = (content: HwpBlob) => {
@@ -342,6 +343,7 @@ export const BORDER_FILL = (content: HwpBlob) => {
 
 /**
  * 모양
+ * charPr
  * @param content 
  */
 export const CHAR_SHAPE = (content:HwpBlob, version:number) => {
