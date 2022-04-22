@@ -1,4 +1,5 @@
 import CFB from "cfb";
+import { LineType, LineType1, LineType2 } from "../hwpx/type/xml";
 import { Cursor } from "./cursor";
 import { Char, CTRL_ID, HwpBlob } from "./type"
 import { COLD_DEFINE, SECTION_DEFINE } from "./util/CtrlID"
@@ -564,7 +565,7 @@ export const setWidth = (width:number):number => {
 }
 
 /**
- * 테두리선의 종류
+ * 대각선 종류
  * @param {number} type
  * @returns {string} Slash | BackSlash | CrookedSlash
  */
@@ -579,19 +580,18 @@ export const diagonalType = (type:number):string => {
   }
 }
 /**
- * 대각선의 정보
+ * 테두리 종류
  * @param {number} type
- * @returns {string} CENTER | CENTER_BELOW | CENTER_ABOVE | ALL
+ * @returns {string} LineType2
  */
-export const slashType = (type:number):string => {
+export const borderType = (type:number):LineType => {
   switch(type) {
     case 0:
-      return "CENTER";
+      return LineType2.NONE;
     case 1:
-      return "CENTER_BELOW";
+      return LineType2.NONE;
     case 2:
-      return "CENTER_ABOVE";
-    case 3:
-      return "ALL";
+      return LineType2.CIRCLE;
   }
+  return LineType2.NONE;
 }

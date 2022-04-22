@@ -5,7 +5,7 @@ export enum VisibilityValue {
   SHOW_ALL = "SHOW_ALL",
 }
 
-const enum Enum_LineType {
+enum Enum_LineType {
   NONE = "없음",
   /**
    * 실선
@@ -97,11 +97,21 @@ export enum LineWidth {
 export type RGBColorType = "/^#[0-9a-fA-F]{6}$/";
 
 /** 라인 Type */
-export type LineType1 = Enum_LineType;
+export const LineType1 = { ...Enum_LineType };
+export type LineType1 = typeof LineType1;
+/** 라인 Type2 */
+export const LineType2 = { ...Enum_LineType ,...Enum_LineType2 };
+export type LineType2 = typeof LineType2;
 
-export type LineType2 = Enum_LineType | Enum_LineType2;
+/** 라인 Type3 */
+export const LineType3 = { ...Enum_LineType ,...Enum_LineType2, ...Enum_LineType3 };
+export type LineType3 = typeof LineType3;
 
-export type LineType3 = Enum_LineType | Enum_LineType2 | Enum_LineType3;
+export type LineType = {
+  [K in keyof LineType3]: {
+    [K2 in keyof LineType3[K]]: LineType3[K][K2]
+  }[keyof LineType3[K]]
+}[keyof LineType3];
 
 export interface ColumnDefType {
   type: LineType2;
