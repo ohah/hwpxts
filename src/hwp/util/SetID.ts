@@ -69,3 +69,36 @@ export const CHAR_SHAPES = (content:DocInfos[]) => {
     return item;
   });
 }
+
+/**
+ * TAB 아이디 배열화
+ * @hwpx tabProperties
+ * @param {DocInfos} content
+ */
+export const TAB_DEFS = (content:DocInfos[]) => {
+  const result:any = GET_HWPTAG_LIST(HWPTAG.TAB_DEF, content).map((item, i) => {
+    item.id = i;
+    return item;
+  });
+  return {
+    ...result, 
+    itemCnt : result.length,
+  }
+};
+
+/**
+ * STYLE 아이디 배열화
+ * @hwpx styles
+ * @param {DocInfos} content
+ */
+export const STYLES = (content:DocInfos[]) => {
+  const result:any = GET_HWPTAG_LIST(HWPTAG.STYLE, content).map((item, i) => {
+    item.id = i;
+    return item;
+  });
+  return {
+    ...result, 
+    itemCnt : result.length,
+  }
+};
+

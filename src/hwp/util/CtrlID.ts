@@ -55,7 +55,7 @@ export const SECTION_DEFINE = (content:HwpBlob) => {
     /** 기본탭 간격 */
     tabStop: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
     /** 번호 문단 모양ID */
-    outlineshapeidref: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
+    outlineShapeIDRef: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
     /** 쪽 번호 */
     page: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
     /** 그림 번호 (0 = 앞 구역에 이어, n = 임의의 번호로 시작) */
@@ -68,7 +68,7 @@ export const SECTION_DEFINE = (content:HwpBlob) => {
     language: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
   }
   console.log('무야', result, content.length);
-  const { spacecolumns, lineGrid, charGrid, tabStop, outlineshapeidref, page, pic, tbl, equation, language } = result;
+  const { spacecolumns, lineGrid, charGrid, tabStop, outlineShapeIDRef, page, pic, tbl, equation, language } = result;
   const { hideFirstHeader, hideFirstFooter, hideFirstMasterPage, border, fill, hideFirstPageNum, hide_border_first_page, textDirection, hideFirstEmptyLine, pagestartson, wonggojiFormat } = attribute;
   /** 구역 정의 */
   const secd = {
@@ -83,7 +83,7 @@ export const SECTION_DEFINE = (content:HwpBlob) => {
       /** 기본탭 간격 */
       tabStop: tabStop,
       /** 번호 문단 모양 ID */
-      outlineshapeidref: outlineshapeidref,
+      outlineShapeIDRef: outlineShapeIDRef,
       /** 모름 메모 모양 설정 정보 아이디 참조값 */
       memoShapeIDRef: 0,
       /** 모름 머리말 /꼬리말 세로 쓰기 여부*/
@@ -152,7 +152,7 @@ export const COLD_DEFINE = (content: HwpBlob):ColPr => {
     /** 단 방향 지정 */
     layout: Bit(attr, 10, 11) === 0 ? 'LEFT' : Bit(attr, 10, 11) === 1 ? 'RIGHT' : 'MIRROR',
     /** 단 너비 동일하게 */
-    samsSz: Bit(attr, 12, 12) === 0 ? false : true,
+    samsSz: Bit(attr, 12, 12),
     /** 단 사이의 간격 */
     sameGap: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getInt16(0, true),
     /** 단 너비가 동일하지 않으면, 단의 개수만큼 단의 폭(2 * cnt) */
@@ -170,21 +170,32 @@ export const COLD_DEFINE = (content: HwpBlob):ColPr => {
     /** 단 너비가 동일하지 않으면, 단의 개수만큼 단의 폭(2 * cnt) */
     data.wordSize = new DataView(new Uint8Array(content.slice(c.pos, c.move(2 * data.count))).buffer, 0).getInt16(0, true);
   }
-  // console.log('cold define', data);
   const { type, colCount, layout, samsSz, sameGap, wordSize, style, width, color } = data;
   const colpr = {
-    id : null,
+    id : "",
     type : type,
     layout : layout,
     samsSz : samsSz,
     sameGap : sameGap,
     wordSize : wordSize,
     style : style,
+    colLine : [],
+    colSz : [],
     width : width,
     color : color,
     colCount : colCount
+  } as ColPr
+  if(!wordSize) {
+    delete colpr.wordSize;
   }
-  return colpr as ColPr;
+  if(sameGap === 1) {
+    // TODO :: 일단 보류
+  } else {
+    delete colpr.colLine;
+    delete colpr.colSz;
+  }
+  console.log('colpr', colpr);
+  return colpr;
   // const attr2 = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
   return data;
   /** 속성의 bit 16-32 */

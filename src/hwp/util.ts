@@ -1,5 +1,5 @@
 import CFB from "cfb";
-import { LineType, LineType1, LineType2 } from "../hwpx/type/xml";
+import { LineType, LineType1, LineType2, LineType3, NumberType1 } from "../hwpx/type/xml";
 import { Cursor } from "./cursor";
 import { Char, CTRL_ID, HwpBlob } from "./type"
 import { COLD_DEFINE, SECTION_DEFINE } from "./util/CtrlID"
@@ -70,16 +70,14 @@ export const Bit = (mask:number, start:number, end:number) => {
  * @returns {String #RRGGBB}
  */
 export const RGB = (value:number) => {
-  // return [
-  //   Bit(value, 0, 7),
-  //   Bit(value, 8, 15),
-  //   Bit(value, 16, 24),
-  //   // Bit(value, 25, 32),
-  // ];
+  let [R, G, B] = [ Bit(value, 0, 7), Bit(value, 8, 15), Bit(value, 16, 24)];
+  if(R === 511) R = 255;
+  if(G === 511) G = 255;
+  if(B === 511) B = 255;
   return `#${[
-    Bit(value, 0, 7).toString(16).padStart(2, '0'),
-    Bit(value, 8, 15).toString(16).padStart(2, '0'),
-    Bit(value, 16, 24).toString(16).padStart(2, '0'),
+    R.toString(16).padStart(2, '0'),
+    G.toString(16).padStart(2, '0'),
+    B.toString(16).padStart(2, '0'),
   ].join("")}`
 }
 
@@ -138,327 +136,6 @@ export const HwpReader = (cfb:CFB.CFB$Entry[]) => {
     Section : cfb.filter((entry)=>entry.name.match(/Section[0-9]{1,1000}/))
   }
 }
-/**
- * 
- * @param content 
- */
-export const PAGE_BORDER_FILL = (content: HwpBlob) => {
-  const c = new Cursor(0);
-  const attribute = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true);
-  const data:any = {
-    offset : {
-      left : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
-      right : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
-      top : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
-      botom : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
-    },
-    borderFillIDRef : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
-  }
-  data.textBorder = Bit(attribute, 0, 0) === 0 ? "CONTENT" : "PAPER";
-  data.attribute.headerInside = Bit(attribute, 1, 1);
-  data.attribute.footerInside = Bit(attribute, 2, 2);
-  switch (Bit(attribute, 3, 4)) {
-    case 0:
-      data.fillArea = "PAPER";
-      break;
-    case 1:
-      data.fillArea = "PAGE";
-      break;
-    case 2:
-      data.fillArea = "BORDER";
-      break;
-  }
-  const { left, right, top, botom } = data.offset;
-  const { borderFillIDRef, textBorder, attribute : attr } = data;
-  const { headerInside, footerInside } = attr;
-  
-}
-/**
- * 페이지 정의
- * @param content 
- */
-export const PAGE_DEF = (content: HwpBlob) => {
-  const size = content.length;
-  const c = new Cursor(0);
-  const data:any = {
-    /** 용지 가로, 단위는 HWPUNIT */
-    width : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
-    /** 용지 세로, 단위는 HWPUNIT */
-    height : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
-    margin : {
-      /** 왼쪽 여백 HWPUNIT */
-      left : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
-      /** 오른쪽 여백 HWPUINT */
-      right : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
-      /** 위쪽 여백 HWPUINT */
-      top : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
-      /** 아래쪽 여백 HWPUINIT */
-      bottom : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
-      /** 머리말 여백 */
-      header : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
-      /** 꼬리말 여백 */
-      footer : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
-      /** 제본 여백 */
-      gutter : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
-    }
-  }
-  const paper_attribute = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true);
-  /** 용지 방향 */
-  data.landscape = Bit(paper_attribute, 0, 0) === 0  ? 'WIDELY' : 'NARROWLY';
-  /** 제책 방법 */
-  data.gutterType = Bit(paper_attribute, 1, 2) === 0 ? 'LEFT_ONLY' : Bit(paper_attribute, 1, 2) === 1 ? 'LEFT_RIGHT' : 'TOP_BOTTOM';
-
-  const { width, height, margin, landscape, gutterType } = data;
-  const { left, right, top, bottom, header, footer, gutter } = margin;
-  const pagepr = {
-    landscape : landscape,
-    width : width,
-    height : height,
-    gutterType : gutterType,
-    margin : {
-      ...margin
-    }
-  }
-}
-
-/**
- * 문단의 레이아웃
- * @lineCount size / 36 
- * @param content 
- * 
- */
-export const LINE_SEG = (content:HwpBlob) => {
-  const size = content.length / 36;
-  const seg = [];
-  const c = new Cursor(0);
-  for (let i = 0; i < size; i++) {
-    const result = {
-      textpos: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
-      vertpos: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
-      textheight: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
-      vertsize: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
-      baseline: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
-      spacing: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
-      horzpos: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
-      horzsize: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
-      flags: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
-    }
-    const flagsBit:any = {}
-    flagsBit.page_start_line = Bit(result.flags, 0, 0);
-    // flagsBit.page_start_line = [];
-    // for (let k = 0; k < 36; k++) {
-    //   flagsBit.page_start_line.push(Bit(result.flags, k, k));
-    // }
-    flagsBit.column_start_line = Bit(result.flags, 1, 1);
-    flagsBit.empty_text = Bit(result.flags, 16, 16);
-    flagsBit.line_first_sagment = Bit(result.flags, 17, 17);
-    flagsBit.line_last_sagment = Bit(result.flags, 18, 18);
-    flagsBit.line_last_auto_hyphenation = Bit(result.flags, 19, 19);
-    flagsBit.indent = Bit(result.flags, 20, 20);
-    flagsBit.ctrl_id_header_shape_apply = Bit(result.flags, 21, 21);
-    flagsBit.property = Bit(result.flags, 31, 31);
-    // console.log('플라그쉽', flagsBit);
-    seg.push(result);
-  }
-  // console.log('result', seg);
-  return seg;
-}
-
-/**
- * 
- * @param content 
- */
-export const CTRL_HEADER = (content:HwpBlob) => {
-  const size = content.length;
-  const c = new Cursor(0);
-  const ctrlId = new TextDecoder("utf8").decode((content as any).slice(c.pos, c.move(4)).reverse());  
-  const ctrl_content = content.slice(4, content.length);
-  if(isCommon(ctrlId)) {
-    console.log('공통 속성', ctrlId)
-  }
-  switch (ctrlId) {
-    case CTRL_ID.secd:
-      // const result = new TextDecoder("utf8").decode(content as any);
-      // OBJECT_COMMON_ATTRIBUTE(content.slice(4, content.length ));
-      console.log('SECTION_DEFINE', SECTION_DEFINE(ctrl_content));
-      // const { tag_id, level, size : secDSize, move } = readRecord(new Uint8Array(content.slice(c.pos, c.move(4) + 4)));
-      // console.log('secd', tag_id, level, size, move);   
-      break;
-    case CTRL_ID.cold:
-      return COLD_DEFINE(ctrl_content);
-      break;
-  
-    default:
-      // console.warn('작업 안된 ctrl_id', ctrlId)
-      break;
-  }
-  return "";
-}
-
-/**
- * @param content 
- * @explain 길이 22, 5032버전 이상일시 변경추적 병합 문단여부 추가됨(2바이트)
- * @length 22 OR 24
- */
-export const PARA_HEADER = (content:HwpBlob) => {
-  const size = content.length;
-  const c = new Cursor(0);
-  //chars
-  let text = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true);
-  if(text & 0x80000000) {
-    //nchars
-    text &= 0x7fffffff;
-  }
-  const data = {
-    /** 텍스트 */
-    text : text,
-    /** 컨트롤 마스크 */
-    control_mask: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
-    /** 문단 모양 아이디 참조값 */
-    parapridref: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
-    /** 문단 스타일 아이디 참조값 */
-    styleidref: new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
-    /** 단 나누기 종류 */
-    paragraph_dvide_type: new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
-    /** 글자 모양 정보 수 */
-    text_shapes: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint8(0),
-    /** range tag 정보 수 */
-    range_tags: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
-    /** 각 줄에 대한 정보 수 */
-    line_align: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
-    /** 문단 Instance Id */
-    id: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
-    /** 변경추적 병합 문단 여부(5.0.3.2 이상) */
-    merged : null
-  }
-  if(size === 24) {
-    data.merged = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
-  }
-  return data;
-}
-
-/**
- * 
- * @param content 
- */
-export const PARA_TEXT = (content:HwpBlob, ctrl_id:CTRL_ID) => {
-  const size = content.length;
-  const c = new Cursor(0);
-  const paragraph_text:any = [];
-  const text_content = new Uint8Array(content.slice(c.pos, c.pos+size))
-  const pc = new Cursor(0);
-  while (pc.pos < text_content.length) {
-    const charCode = new DataView(new Uint8Array(text_content.slice(pc.pos, pc.pos + 2)).buffer, 0).getUint16(0, true);
-    switch (charCode) {
-      case Char["ZONE/SINGLE_DEFINITION"]:
-        const para_id = new TextDecoder("utf8").decode(text_content.slice(pc.pos + 2, pc.pos + 6).reverse());
-        console.log('para_id', para_id)
-        if(para_id == "secd") {
-          // const t = SECTION_DEFINE(text_content.slice(pc.pos + 6, pc.pos + 32));
-          // console.log('t', t);
-        }
-        console.log(buf2hex(text_content.slice(pc.pos + 6, pc.pos + 16)));
-        pc.move(16);
-        break;
-      case Char.RESERVED_CHAR:
-        pc.move(2);
-        break;
-      case Char.RESERVED_INLINE:
-        pc.move(16);
-        break;
-      case Char.RESERVED_EXTENDED: //예약
-        pc.move(16);
-        break;
-      case Char.UNUSABLE:
-        pc.move(2);
-        break;
-      case Char.FIELD_START:
-        console.log('FILED_START', "");
-        pc.move(16);
-        break;
-      case Char.FIELD_END:
-        pc.move(16)
-        break;
-      case Char.TITLE_MARK:
-        pc.move(16);
-        break;
-      case Char.TAB:
-        pc.move(2);
-        break;
-      case Char.LINE_BREAK:
-        pc.move(2);
-        break;
-      case Char["DRAWING_OBJECTS/TABLE"]:
-        pc.move(16);
-        break;
-      case Char.PARA_BREAK:
-        pc.move(2);
-        break;
-      case Char.HIDDEN_EXPLANATION:
-        pc.move(16);
-        break;
-      case Char["FOOTER/PREFACE"]:
-        pc.move(16);
-        break;
-      case Char["FOOTNOTE/ENDNOTE"]:
-        pc.move(16);
-        break;
-      case Char.AUTO_NUMBER:
-        pc.move(16);
-        break;
-      case Char.PAGE_CTRL:
-        pc.move(16);
-        break;
-      case Char["BOOKMARK/BROWSE_MARK"]:
-        pc.move(16);
-        break;
-      case Char.OVERLAP_WORD:
-        pc.move(16);
-        break;
-      case Char.HYPEN:
-        pc.move(2);
-        break;
-      case Char.BUNDLE_BLANK:
-        pc.move(2);
-        break;
-      case Char.FIXED_WIDTH_BLANK:
-        pc.move(2);
-        break;
-      default:
-        const CharText = new Uint8Array(text_content.slice(pc.pos, pc.pos + charCode))
-        paragraph_text.push(CharText[0]);
-        paragraph_text.push(CharText[1]);
-        pc.move(2);
-    }
-  }
-  const text = new Uint8Array(paragraph_text);
-  const result = new TextDecoder("utf-16le").decode(text);
-  console.log(result);
-  return result;
-}
-
-/**
- * CHAR_SHAPE 문단 모양
- * @param content 
- * @returns 
- * @size 8 * n
- */
-export const PARA_CHAR_SHAPE = (content:HwpBlob) => {
-  const c = new Cursor(0);
-  const size = content.length;
-  const data = [];
-  for(let i=0;i<size/8;i++) {
-    const shape = {
-      /** 글자 모양이 바뀌는 시작 위치 */
-      startNumber : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
-      /** 글자 모양 ID */
-      charPriDRef : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
-    }
-    data.push(shape);
-  }
-  return data;
-}
-
 
 /**
  * 개체 공통 속성
@@ -466,47 +143,180 @@ export const PARA_CHAR_SHAPE = (content:HwpBlob) => {
  */
 export const OBJECT_COMMON_ATTRIBUTE = (content: HwpBlob) => {
   const c = new Cursor(0);
-  const _attr = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true);
-  const objectCommonAttribute = {
-    /** 속성 */
-    attr : {
-      like_letters : Bit(_attr, 0, 0),
-      reservation : Bit(_attr, 1, 1),
-      VertRelTo : Bit(_attr, 3, 4) === 0 ? "paper" : Bit(_attr, 3, 4) === 1 ? "page" : "para",
-      VertRelTo_relative : Bit(_attr, 5, 7),
-      HorzRelTo : Bit(_attr, 8, 9) === 2 ? "column" : Bit(_attr, 8, 9) === 3 ? "para" : "page",
-      HorzRelTo_relative : Bit(_attr, 10, 12),
-      VertRelTo_para : Bit(_attr, 13, 13) === 0 ? "off" : "on",
-      overlap : Bit(_attr, 14, 14),
-      size_protect : Bit(_attr, 20, 20) === 0 ? "off" : "on",
+  const ctrlId = new TextDecoder("utf8").decode((content as any).slice(c.pos, c.move(4)).reverse());
+  const attr = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true);
+  
+  // 글자처럼 취급 여부
+  const like_letters = Bit(attr, 0, 0);
+  // 예약
+  const reservation = Bit(attr, 1, 1);
+  // 줄 간격에 영향을 줄지 여부
+  const line_spacing_influence = Bit(attr, 2, 2);
+  // 세로 위치의 기준(VertRelTo)
+  const VertRelTo = Bit(attr, 3, 4) === 0 ? "paper" : Bit(attr, 3, 4) === 1 ? "page" : "para";
+  // 세로 위치의 기준에 대한 상대적인 배열 방식
+  const VertRelTo_relative = Bit(attr, 5, 7);
+  // 가로 위치의 기준(HorzRelTo)
+  const HorzRelTo = Bit(attr, 8, 9) === 2 ? "column" : Bit(attr, 8, 9) === 3 ? "para" : "page";
+  // HorzRelTo에 대한 상대적인 배열 방식
+  const HorzRelTo_relative = Bit(attr, 10, 12);
+  // VertRelTo이 'para'일 때 오브젝트의 세로 위치를 본문 영역으로 제한할지 여부
+  const VertRelTo_para = Bit(attr, 13, 13) === 0 ? "off" : "on";
+  // 다른 오브젝트와 겹치는것을 허용할지 여부(오브젝트의 위치가 본문 영역으로 제한 되면 언제나 false로 간주한다)
+  const overlap = Bit(attr, 14, 14);
+  // 오브젝트의 폭의 기준
+  const HorzRelTo_width = Bit(attr, 15, 17);
+  // 오브젝트의 높이의 기준
+  const VertRelTo_height = Bit(attr, 18, 29);
+  // VertRelTo이 Para일 때 크기 보호 여부
+  const size_protect = Bit(attr, 20, 20) === 0 ? "off" : "on";
+  // 오브젝트 주위를 텍스트가 어떻게 흘러갈지 지정하는 옵션
+  const text_flow = Bit(attr, 21, 23);
+  // 오브젝트 좌/우 어느쪽에 글을 배치할지 지정하는 옵션
+  const text_align = Bit(attr, 24, 25);
+  // 이 개체가 속하는 번호 범주
+  let numberingType = "NONE";
+  switch (Bit(attr, 26, 28)) {
+    // NONE
+    case 0:
+      numberingType = "NONE";
+      break;
+    // PICTURE(figure)
+    case 1:
+      numberingType = "PICTURE";
+      break;
+    // TABLE(table)
+    case 2:
+      numberingType = "TABLE";
+      break;
+    // EQUATION(equation)
+    case 3:
+      numberingType = "EQUATION";
+      break;
+    default:
+      break;
+  }
+  
+  /** 세로/가로 오프셋값 */
+  const offset = {
+    // 세로 오프셋 값
+    vertical : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
+    // 가로 오프셋 값
+    horizontal : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
+  };
+  /** 오브젝트 넓이/높이 */
+  const object = {
+    // 오브젝트 넓이
+    width : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
+    // 오브젝트 높이
+    height : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
+  };
+  /** zIndex(zOrder) */  
+  const zOrder = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true);
+  /** 오브젝트의 바깥 4방향 여백 */
+  const margin = {
+    // 아래
+    bottom : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
+    // 위
+    left : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
+    // 오른쪽
+    right : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
+    // 왼쪽
+    top : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
+  };
+  /** 문서 내 각 개체에 대한 고유 아이디(instance ID) */
+  const instance_id = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true);
+  /** 쪽 나눔 방지 on(1) / off(0) */
+  const pageDivde = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true);
+  /** 개체 설명문 글자 길이(len) */
+  // len : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
+  return {
+    // 객체를 식별하기 위한 아이디
+    id : "",
+    // z-order
+    zOrder: zOrder,
+    // 이 객체가 속하는 번호 범위
+    numberingType: numberingType,
+    /**
+     * 오브젝트 주위를 텍스트가 어떻게 흘러갈지 정하는 옵션
+     * 하위 요소 pos 속성 중 "treatAsChar"이 "false" 일 때에만 사용
+     */
+    textWrap: "",
+    /**
+     * 오브젝트 좌/우 어느쪽에 글을 배치할지 지정하는 옵션
+     * textWrap 속성이 "SQUARE" 또는 "TIGHT" 또는 "THROUGH" 일 때에만 사용
+     */
+    textFlow: "",
+    // 객체 선택 가능 여부
+    lock: "",
+    // 크기 정보
+    sz: {
+      // 오브젝트 폭
+      width: "",
+      // 오브젝트 폭의 기준
+      widthRelTo: "",
+      // 오브젝트 높이
+      height: "",
+      // 오브젝트 높이의 기준
+      heightRelTo: "",
+      // 크기 보호 여부
+      protect: "",
     },
-    /** 세로/가로 오프셋값 */
-    offset : {
-      vertical : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
-      horzontal : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
+    // 위치 정보
+    pos: {
+      // 글자처럼 취급 여부
+      treatAsChar: "",
+      /**
+       * 줄 간격에 영향을 줄지 여부
+       * 하위 요소 RelativeTo의 속성 중 "vertical"이 "PARA" 일 때에만 사용
+       */
+      flowWithText: "",
+      /**
+       * 다른 오브젝트와 겹치는 것을 허용할지 여부
+       * treatAsChar 속성이 "false" 일 때에만 사용
+       * flowWithText 속성이 "true"이면 무조건 "false"로 간주함
+       */
+      allowOverlap: "",
+      // 객체와 조판 부호를 항상 같은쪽에 놓을지 여부
+      holdAnchorAndSO: "",
+      /**
+       * 세로 위치의 기준
+       * treatAsChar 속성이 "false" 일 때에만 사용
+       */
+      vertRelTo: "",
+      /**
+       * 가로 위치의 기준
+       * treatAsChar 속성이 "false" 일 때에만 사용
+       */
+      horzRelTo: "",
+      /**
+       * vertRelTo에 대한 상대적인 배열 방식
+       * vertRelTo의 값에 따라 가능한 범위가 제한됨
+       * TOP : 위 (vertRelTo="PAPER" | "PAGE" | "PARA")
+       * CENTER : 가운데 (vertRelTo="PAPER" | "PAGE")
+       * BOTTOM : 아래 (vertRelTo="PAPER" | "PAGE")
+       * INSIDE : 안쪽 (vertRelTo="PARA" | "PAGE")
+       * OUTSIDE : 바깥쪽 (vertRelTo="PARA" | "PAGE")
+       */
+      vertAlign:"",
+      // horzRelTo에 대한 상대적인 배열 방식
+      horzAlign:"",
+      // vertRelTo와 vertAlign을 기준점으로 한 상대적인 오프셋 값, 단위는 HWPUINT
+      vertOffset:"",
+      // horzRelTo와 horzAlign을 기준점으로 한 상대적인 오프셋 값, 단위는 HWPUINT
+      horzOffset:"",
     },
-    /** 오브젝트 넓이/높이 */
-    object : {
-      width : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
-      height : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
-    },
-    /** zIndex */  
-    zOrder : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
-    /** 오브젝트의 바깥 4방향 여백 */
-    margin : {
-      bottom : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
-      left : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
-      right : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
-      top : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
-    },
-    /** 고유 ID */
-    instance_id : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
-    /** 쪽 나눔 방지 on(1) / off(0) */
-    pageDivde : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
-    /** 개체 설명문 글자 길이(len) */
-    len : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
-  } 
-  return objectCommonAttribute;
+    // 바깥 여백
+    outMargin: {},
+    // 캡션
+    caption: {},
+    /**
+     * 주석
+     * 요소의 값으로 주석 내용을 가짐
+     * 해당 요소의 추가적인 설명은 생략
+     */
+    shapeComment: "",
+  }
 }
 /**
  * 개체 공통 속성
@@ -580,18 +390,253 @@ export const diagonalType = (type:number):string => {
   }
 }
 /**
- * 테두리 종류
+ * 테두리 종류 / 채움 종류
+ * @table 표25
  * @param {number} type
- * @returns {string} LineType2
+ * @returns {string} LineType
+ * @reserch 문서와 값이 맞지 않음. 확인 필요 NONE이 0인데 0이 SOLID로 나와있음. 몰라서 그냥 +1씩 함.
  */
 export const borderType = (type:number):LineType => {
   switch(type) {
     case 0:
-      return LineType2.NONE;
+      return LineType3.NONE
     case 1:
-      return LineType2.NONE;
+      return LineType3.SOLID;
     case 2:
-      return LineType2.CIRCLE;
+      return LineType3.DASH;
+    case 3:
+      return LineType3.DOT;
+    case 4:
+      return LineType3.DASH_DOT;
+    case 5:
+      return LineType3.DASH_DOT_DOT;
+    case 6:
+      return LineType3.LONG_DASH;
+    case 7:
+      return LineType3.CIRCLE;
+    case 8:
+      return LineType3.DOUBLE_SLIM;
+    case 10:
+      return LineType3.SLIM_THICK;
+    case 11:
+      return LineType3.THICK_SLIM;
+    case 12:
+      return LineType3.SLIM_THICK_SLIM;
+    case 13:
+      return LineType3.WAVE;
+    case 14:
+      return LineType3.DOUBLE_WAVE;
+    default:
+      return LineType3.NONE
   }
-  return LineType2.NONE;
+}
+/**
+ * 채우기 종류
+ * @value 0x00000000 : 채우기 없음
+ * @value 0x00000001 : 단색 채우기
+ * @value 0x00000002 : 이미지 채우기
+ * @value 0x00000004 : 그러데이션 채우기
+ * @param type 
+ * @returns {0 : 없음, 1 : 단색 채우기, 2 : 이미지 채우기, 4: 그라데이션 채우기}
+ */
+export const isFillType = (type:number):0 | 1 | 2 | 4 => {
+  return type as any;
+  console.log('isFillType', type);
+  if(type === 0x00000000) {
+    return 0;
+  }
+  if((type & 0x00000001) != 0) {
+    return 0;
+  }else if((type & 0x00000002) != 0) {
+    return 2;
+  }else if((type & 0x00000004) != 0) {
+    return 4;
+  }
+}
+
+/**
+ * 탭의 종류
+ * @type UINT8
+ * @returns { LEFT :  왼쪽, RIGHT : 오른쪽, CENTER: 가운데, DECIMAL : 소수점}
+ */
+export const tabType = (type:number):"LEFT" | "RIGHT" | "CENTER" | "DECIMAL" => {
+  switch(type) {
+    case 0:
+      return "LEFT";
+    case 1:
+      return "RIGHT";
+    case 2:
+      return "CENTER";
+    case 3:
+      return "DECIMAL";
+  }
+}
+
+/**
+ * @header { paraHead } 문단 머리 정보 속성
+ * 문단의 머리 정보 속성
+ * @returns { align, useInstWidth, autoIndent, textOffset}
+ */
+export const paraHeadType = (attr:number) => {
+  return {
+    /** 문단의 정렬 종류 */
+    align:  Bit(attr, 0, 1) === 0 ? "LEFT" : Bit(attr, 0, 1) === 1 ? "CENTER" : "RIGHT",
+    /** 번호 너비를 실제 인스턴스 문자열의 너비에 따를지 여부 */
+    useInstWidth : Bit(attr, 2, 2) === 0 ? 0 : 1,
+    /** 자동 내어 쓰기 여부 */
+    autoIndent : Bit(attr, 3, 3) === 0 ? 0 : 1,
+    /** 수준별 본문과의 거리 종류 */
+    textOffsetType : Bit(attr, 4, 4) === 0 ? "PERCENT" : "HWPUINT",
+  } 
+}
+
+/**
+ * @numformat 속성
+ * @return { NumberType1 }
+ */
+export const numFormatType = (attr:number) => {
+  return Object.keys(NumberType1).find((type, i) => {
+    if(i === attr) {
+      return type;
+    }
+  });
+}
+
+
+/**
+ * ParaShape(paraproperty) 속성 1
+ * 문단 모양 속성
+ * 표 44 참조
+ */
+export const paraShapeType = (attr:number) => {
+  const attribute:any = {
+    // 편집 용지의 줄 격자 사용 여부
+    snapToGrid: Bit(attr, 8, 8),
+    // 문단 머리 모양 설정 정보
+    // 아이디를 가져오는 위치를 모르겠음
+    heading:{},
+    // 정렬
+    align: {},
+    // 문단 줄 나눔 설정
+    breakSetting: {},
+    // 문단 여백 설정
+    margin: {},
+    // 줄 간격 설정
+    lineSpacing: {},
+    // 문단 테두리 설정
+    border: {},
+    // 문단 자동 간격 조절 설정
+    autoSpacing: {},
+  }
+  switch (Bit(attr, 0, 1)) {
+    case 0:
+      // 글자에 따라
+      attribute.lineSpacing.type = "PERCENT"
+      break;
+    case 1:
+      // 고정 값
+      attribute.lineSpacing.type = "FIXED"
+      break;
+    case 2:
+      // 여백만 지정
+      attribute.lineSpacing.type = "BETWEEN_LINES"
+      break;
+      // AT_LEAST(최소) 가 있는데 5.X에는 없음
+  }
+  switch (Bit(attr, 2, 4)) {
+    case 0:
+      // 양쪽 정렬
+      attribute.align.horizontal = "JUSTIFY";
+    case 1:
+      // 왼쪽 정렬
+      attribute.align.horizontal = "LEFT";
+      break;
+    case 2:
+      // 오른쪽 정렬
+      attribute.align.horizontal = "RIGHT";
+      break;
+    case 3:
+      // 가운데 정렬
+      attribute.align.horizontal = "CENTER";
+      break;
+    case 4:
+      //배분 정렬
+      attribute.align.horizontal = "DISTRIBUTE"; 
+      break;
+    case 5:
+      //나눔 정렬(공백에만 배분)
+      attribute.align.horizontal = "DISTRIBUTE_SPACE";
+      break;
+  }
+  switch (Bit(attr, 5, 6)) {
+    case 0:
+      // 단어
+      attribute.breakSetting.breakLatinWord = 'KEEP_WORD';
+      break;
+    case 1:
+      // 하이픈
+      attribute.breakSetting.breakLatinWord = 'HYPHENATION';
+      break;
+    case 2:
+      // 글자
+      attribute.breakSetting.breakLatinWord = 'BREAK_WORD';
+      break;
+  };
+  // 라틴 문자 이외의 문자의 줄나눔 단위
+  attribute.breakNonLatinWord = Bit(attr, 7, 7) === 0 ? 'KEEP_WORD' : 'BREAK_WORD';
+  // 공백 최소값, 단위는 %
+  attribute.condense = Bit(attr, 9, 15);
+  // 외톨이줄 보호 여부
+  attribute.windowOrphan = Bit(attr, 16, 16);
+  // 다음 문단과 함께 여부
+  attribute.keepWithNext = Bit(attr, 17, 17);
+  // 문단 보호 여부
+  attribute.keepLines = Bit(attr, 18, 18);
+  // 문단 앞에서 항상 쪽 나눔 여부
+  attribute.pageBreakBefore = Bit(attr, 19, 19);
+
+  // 세로 정렬 방식
+  switch (Bit(attr, 20, 21)) {
+    case 0:
+      // 글꼴 기준
+      attribute.align.vertical = 'BASELINE';
+      break;
+    case 1:
+      // 위쪽
+      attribute.align.vertical = 'TOP';
+      break;
+    case 2:
+      // 가운데
+      attribute.align.vertical = 'MIDDLE';
+      break;
+    case 3:
+      // 아래
+      attribute.align.vertical = 'BOTTOM';
+      break;
+  };
+  // 글꼴에 어울리는 줄 높이 사용 여부
+  attribute.fontLineHeight = Bit(attr, 22, 22);
+  switch (Bit(attr, 23, 24)) {
+    case 0:
+      attribute.heading.type = 'NONE';
+      break;
+    case 1:
+      attribute.heading.type = 'OUTLINE';
+      break;
+    case 2:
+      attribute.heading.type = 'NUMBER';
+      break;
+    case 3:
+      attribute.heading.type = 'BULLET';
+      break;
+  };
+  // 문단 단계(문단 수준 1수준 ~ 7수준)
+  attribute.heading.level = Bit(attr, 25, 27);
+  // 문단 테두리 연결 여부
+  attribute.border.connect = Bit(attr, 28, 28);
+  // 문단 테두리 여백 무시 여부
+  attribute.border.ignoreMargin = Bit(attr, 29, 29);
+  // 문단 꼬리 모양
+  attribute.paragraph_tail_shape = Bit(attr, 30, 30);
+  return attribute;
 }

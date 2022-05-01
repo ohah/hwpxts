@@ -1,4 +1,4 @@
-import { NumberType2, RGBColorType } from "../hwpx/type/xml";
+import { LineType1, LineType2, LineWidth, NumberType2, RGBColorType } from "../hwpx/type/xml";
 
 type Enumerate<N extends number, Acc extends number[] = []> = Acc['length'] extends N ? Acc[number] : Enumerate<N, [...Acc, Acc['length']]>;
 type Range<F extends number, T extends number> = Exclude<Enumerate<T>, Enumerate<F>>;
@@ -43,10 +43,62 @@ export interface LineSeg {
  * run(text)
  */
 export interface Run {
+  // 구역 설정 정보
   secPr?: Secpr;
+  // 문단 제어 정보
   ctrl?: Ctrl;
-  charPrIDRef: number;
+  // 텍스트 문자열
   t?: string;
+  // 표
+  tbl?: any;
+  // 그림
+  pic?: any;
+  // 묶음 객체
+  container?: any;
+  // OLE
+  ole?: any;
+  // 수식
+  equation?: any;
+  // 선
+  line?: any;
+  // 사각형
+  rect?: any;
+  // 호
+  ellipse?: any;
+  // 타원
+  arc?: any;
+  // 다각형
+  polygon?: any;
+  // 곡선
+  curve?: any;
+  // 연결선
+  connectLine: any;
+  // 글맵시
+  textart?: any;
+  // 글자 겹침
+  compose?: any;
+  // 덧말
+  dutmal?: any;
+  // 버튼
+  btn?: any;
+  // 라디오버튼
+  radioBtn?: any;
+  // 체크 버튼
+  checkBtn?: any;
+  // 콤보 박스
+  comboBox?: any;
+  // 애디트
+  edit?: any;
+  // 리스트 박스
+  listBox?: any;
+  // 스크롤바
+  scrollBar?: any;
+  // 비디오
+  video?: any;
+  // 글자 모양 설정 아이디 참조 값
+  charPrIDRef?: number;
+  // 글자 모양 변경 추적 아이디
+  charTcId?: number;
 }
 /**
  * @prefix hp
@@ -254,15 +306,40 @@ export interface Run {
  * ColPr
  */
 export interface ColPr {
-  id? : number
+  id? : number | ""
   type? : "NEWSPAPER" | "BALANCED_NEWSPAPER" | "PARALLEL"
   samSz? : boolean
   sameGap? : number
   wordSize? : number
-  colCount : Range<1, 255>
-  width : number
-  color : RGBColorType,
+  colCount : Range<1, 255>  
+  colLine?:ColLine[]
+  colSz?:ColSz[]
   layout: "LEFT" | "RIGHT" | "MIRROR",
+}
+/**
+ * @prefix hp
+ * @parent ColPr
+ * @param { type : 구분선 종류, width : 구분선 굵기, color : 구분선 색}
+ * ColLine
+ */
+export interface ColLine {
+  // 구분선 종류
+  type?:LineType2
+  // 구분선 굵기
+  width?:LineWidth
+  // 구분선 색
+  color?:RGBColorType
+}
+/**
+ * @prefix hp
+ * @parent ColPr
+ * @param { width : 단의 크기, gap : 단 사이의 간격}
+ * sameSz 속성이 false일 때(1)
+ */
+export interface ColSz {
+  // 단의 크기
+  width:number
+  gap:number
 }
 /**
  * @prefix hp

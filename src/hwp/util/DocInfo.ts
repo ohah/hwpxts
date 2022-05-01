@@ -3,11 +3,11 @@ import { SECPR } from "../../hwpx/type/section";
 import { FamilyType, LineType1 } from "../../hwpx/type/xml";
 import { Cursor } from "../cursor";
 import { HwpBlob, SymMark } from "../type";
-import { Bit, Flags, RGB, setWidth } from "../util";
+import { Bit, borderType, buf2hex, Flags, isFillType, numFormatType, paraHeadType, paraShapeType, RGB, setWidth, tabType } from "../util";
 
 /**
  * 문서 속성
- * @param content 
+ * @param {Uint8Array} content
  */
 export const DOCUMENT_PROPERTIES = (content: HwpBlob) => {
   const size = 0;
@@ -41,7 +41,7 @@ export const DOCUMENT_PROPERTIES = (content: HwpBlob) => {
 
 /**
  * ID_MAPPINGS
- * @param content 
+ * @param {Uint8Array} content
  */
 export const ID_MAPPINGS = (content: HwpBlob, version:number) => {
   const size = 0;
@@ -78,7 +78,7 @@ export const ID_MAPPINGS = (content: HwpBlob, version:number) => {
 
 /**
  * 바이너리 데이터
- * @param content 
+ * @param {Uint8Array} content
  */
 export const BIN_DATA = (content: HwpBlob) => {
   const size = content.length;
@@ -221,7 +221,7 @@ export const FACE_NAME = (content: HwpBlob) => {
 /**
  * 테두리/배경
  * borderFills
- * @param content 
+ * @param {Uint8Array} content
  */
 export const BORDER_FILL = (content: HwpBlob) => {
   const size = content.length;
@@ -258,53 +258,63 @@ export const BORDER_FILL = (content: HwpBlob) => {
     },
     centerLine : Bit(attr, 13, 13),
     leftBorder : {
-      type : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
+      type : borderType(new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0)),
       width : setWidth(new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0)),
       color : RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true)),
     },
     rightBorder : {
-      type : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
+      type : borderType(new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0)),
       width : setWidth(new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0)),
       color : RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true)),
     },
     topBorder : {
-      type : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
+      type : borderType(new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0)),
       width : setWidth(new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0)),
       color : RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true)),
     },
     bottomBorder : {
-      type : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
+      type : borderType(new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0)),
       width : setWidth(new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0)),
       color : RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true)),
     },
     diagonal : {
-      type : new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
+      type : borderType(new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0)),
       width : setWidth(new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0)),
       color : RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true)),
     },
     
   }; 
   /** 표일때만 사용 */
-  // data.breakCellSeparateLine = null,
-  const isFill = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint8(0);
-  data.fillBrush = {}
+  // data.breakCellSeparateLine = null0
+  /** 
+   * 채우기 종류(type) 
+   * 0x00000000 : 채우기 없음
+   * 0x00000001 : 단색 채우기
+   * 0x00000002 : 이미지 채우기
+   * 0x00000004 : 그러데이션 채우기
+   * */
+  const isFill = isFillType(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint8(0));
+  if(isFill) data.fillBrush = {};
   switch (isFill) {
     // 채우기 없음
-    case 0x00000000:
+    case 0:
       break;
     /** 면(단색) 채우기 */
-    case 0x00000001:
+    case 1:
       data.fillBrush.winBrush = {
         //배경색
         faceColor : RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true)),
         //무늬색
         hatchColor : RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true)),
-        // 무늬 종류(0 ~ 6)
-        alpha : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
+        /**
+         * 무늬 종류(0 ~ 6)
+         * @research -1이 나옴. 기본 테두리에서. 왜인지는 모름 hwpx 기준으론 1이 기본값
+         */
+        alpha : new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
       }
       break;
     /** 그라데이션 채우기(효과) */
-    case 0x00000004:
+    case 4:
       data.fillBrush.gradation = {
         // 그라데이션 유형
         type : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getInt16(0, true),
@@ -329,7 +339,7 @@ export const BORDER_FILL = (content: HwpBlob) => {
       }
       break;
     /** 이미지(그림) 채우기 */
-    case 0x00000002:
+    case 2:
       // 부정확함 나중에 ...
       data.fillBrush.imgBrush = {
         // mode : 
@@ -344,7 +354,7 @@ export const BORDER_FILL = (content: HwpBlob) => {
 /**
  * 모양
  * charPr
- * @param content 
+ * @param {Uint8Array} content
  */
 export const CHAR_SHAPE = (content:HwpBlob, version:number) => {
   const text_shape_attr = (shape:number) => {
@@ -676,25 +686,138 @@ export const CHAR_SHAPE = (content:HwpBlob, version:number) => {
  * 탭 정보
  * @param {Uint8Array} content
  */
-export const TAB_DEF = (content:HwpBlob) => {
+export const TAB_DEF = (content:HwpBlob) => {  
   const size = content.length;
   const c = new Cursor(0);
   const attr = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true);
   const count = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt16(0, true);
+  if(count === 0) {
+    // autoTab = new DataView(new Uint8Array(content.slice(5, 6)).buffer, 0).getUint8(0);
+    return {
+      autoTabLeft : Bit(attr, 0, 0) ? 1 : 0,
+      autoTabRight : Bit(attr, 0, 1) ? 1 : 0,
+    }
+  } else if(count === 1) {
+    const pos = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint16(0, true);
+    const type = tabType(new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getInt8(0));
+    const leader = borderType(new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getInt8(0));
+    return {
+      autoTabLeft : Bit(attr, 0, 0) ? 1 : 0,
+      autoTabRight : Bit(attr, 0, 1) ? 1 : 0,
+      /**
+       * @prfix hh
+       * @pos {hwpUNIT}
+       */
+      tabItem : {
+        pos : pos,
+        type : type,
+        leader : leader,
+      }
+    }
+  } else {
+    const tabItems = [];
+    for(let i = 0; i < count; i++) {
+      const pos = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint16(0, true);
+      const type = tabType(new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getInt8(0));
+      const leader = borderType(new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getInt8(0));
+      tabItems.push({
+        pos : pos,
+        type : type,
+        leader : leader,
+      });
+      c.move(2);
+    }
+    return {
+      autoTabLeft : Bit(attr, 0, 0) ? 1 : 0,
+      autoTabRight : Bit(attr, 0, 1) ? 1 : 0,
+      /**
+       * @prfix hh
+       * @pos {hwpUNIT}
+       * @a
+       */
+      tabItem : tabItems
+    }
+  }
 }
 /**
  * NUMBERING
  * 탭 정보
+ * TODO : numFormat, checkable,  level 8 ~ 10 등 해결 안된것이 많음
  * @param {Uint8Array} content
  */
-export const NUMBERING = (content:HwpBlob) => {
+export const NUMBERING = (content:HwpBlob, version:number) => {
   const size = content.length;
   const c = new Cursor(0);
+  var start = c.pos;
+  try {
+    // c.move(12);
+    /** 7회 반복
+     * @level {number} 1 ~ 7
+     * @content 각 레벨에 해당하는 숫자 또는 문자 또는 기호를 표시
+     */
+    for (let i = 0; i < 7; i++) {
+      /** 속성 */
+      const paraHead = paraHeadType(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true));
+      /** 너비 보정값(너비 조정) */
+      const widthAdjust = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
+      /** 본문과의 거리(단위 종류 PERCENT / HWPUNIT) */
+      const textOffset = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
+      /** 글자모양 아이디 참조값 */
+      const charPrIDRef = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true);
+      /** 번호 형식 길이(len) */
+      // console.log('c', c.pos, paraHead, widthAdjust, textOffset, charPrIDRef);
+      const level = i + 1;
+      const len = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
+      // console.log('len', len);
+      const WChar = new Uint8Array(content.slice(c.pos, c.move(2 * len)));
+      // console.log('WChar', new TextDecoder('utf-16le').decode(WChar));
+    }
+    //((4×7) + (2×len))×3
+    //((4×7) + (2×len))×3
+    // (2 + (2xlen)) * 3
+    // 2 + ((4 x 7) + 2 + (2 x len)) * 3
+    const numFormat = numFormatType(new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true));
+    // console.log('numFormat', numFormat);
+    if(version >= 5025) {
+      // console.log('여기 돌린단 뜻인데?');
+      for (let i = 0; i < 7; i++) {
+        const level = i + 1;
+        const start = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true);
+        // console.log('level', level, start)
+      }
+      for (let k = 0; k < 3; k++) {
+        // 값을 읽으면 8인데 실제 배열 크기는 6이다. 그래서 - 2를 해준다??
+        const len2 = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true) - 2;        
+        const level = k + 8;
+        const WChar = new Uint8Array(content.slice(c.pos, c.move(2 * len2)));
+        // console.log('hex', buf2hex(content.slice(c.pos, c.move(2 * len2))));
+        // console.log('WChar3', new TextDecoder('utf-16le').decode(WChar), c.pos);
+        // c.move(12)
+      }
+    }
+    for (let i = 0; i < 3; i++) {
+      if(version >= 5100) {
+        const startNumber = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true);
+        // console.log('startNum', startNumber)
+        // console.log('확장startNum', startNumber);
+      }
+    }
+  } catch(e) {
+    var end = c.pos;
+    // console.log('numbering', e);
+    // console.log('move', start, end, size)
+  }
+  var end = c.pos;
+  // console.log('move', start, end, size)
+  return {
+    test : "tq",
+  }
 }
 /**
  * 문단 모양(표 43 참조)
  * @length 54
  * @level 1
+ * TODO : XML 문서에서 나오지 않음??
  * @param {Uint8Array} content
  */
 export const BULLET = (content:HwpBlob) => {
@@ -707,9 +830,105 @@ export const BULLET = (content:HwpBlob) => {
  * @level 1
  * @param {Uint8Array} content
  */
-export const PARA_SHAPE = (content:HwpBlob) => {
+export const PARA_SHAPE = (content:HwpBlob, version:number) => {
   const size = content.length;
   const c = new Cursor(0);
+  const attr = paraShapeType(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true));
+  const data:any = {
+    ...attr,
+    margin: {
+      ...attr.margin,
+      // 왼쪽 여백
+      left: {
+        value: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
+        unit: "HWPUINT",
+      },
+      // 오른쪽 여백
+      right: {
+        value: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
+        unit: "HWPUINT",
+      },
+      /**
+       * 들여쓰기 / 내어쓰기
+       * n이 0보다 크면 들여쓰기 n
+       * n이 0이면 보통
+       * n이 0보다 작으면 내어쓰기 n
+       */
+      intent: {
+        value: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
+        unit: "HWPUINT",
+      },
+      // 위쪽 문단 간격
+      prev: {
+        value: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
+        unit: "HWPUINT",
+      },
+      // 아래쪽 문단 간격
+      next: {
+        value: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
+        unit: "HWPUINT",
+      }
+    },
+    // 탭 정의 아이디(TabDef ID) 참조 값
+    tabPrIDRef: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint16(0, true),
+    /**
+     * 문단 모양 정보를 구별하기 위한 아이디
+     * 번호 문단 ID(Numbering ID) 또는 글머리표 문단 모양 ID(Bullet ID) 참조 값
+     */
+    id: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint16(0, true),
+    border: {
+      ...attr.border,
+      // 테두리/배경 모양 ID(테두리/배경 모양 아이디 참조값)
+      borderFillIDRef: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint16(0, true),
+      // 문단 테두리 왼쪽 간격(단위는 HWPUINT)
+      offsetLeft: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
+      // 문단 테두리 오른쪽 간격(단위는 HWPUINT)
+      offsetRight: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
+      // 문단 테두리 위쪽 간격(단위는 HWPUINT)
+      offsetTop: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
+      // 문단 테두리 아래쪽 간격(단위는 HWPUINT)
+      offsetBottom: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
+    }
+  }  
+  // 속성 2(표 40 참조)라고 써있지만 표 45(문단 모양 속성2) 참조
+  if(version >= 5017) {
+    const attr2 = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true);
+    // 한 줄로 입력 여부
+    const onlineuse = Bit(attr2, 0, 1);
+    // Reserved
+    const reserved = Bit(attr2, 2, 3);
+    // 한글과 영어 간격을 자동 조절 여부
+    data.autoSpacing.eAsianEng = Bit(attr2, 4, 4);
+    // 한글과 숫자 간격을 자동 조절 여부
+    data.autoSpacing.eAsianNum = Bit(attr2, 5, 5);
+    data.attr2 = attr2;
+  }
+  // 속성3(표 41 참조)라고 써있지만 표 46(줄 간격 종류) 참조
+  if(version >= 5025) {
+    const attr3 = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true);
+    const lineType = Bit(attr3, 0, 4);
+    data.attr3 = attr3;
+  }
+  // 줄 간격
+  if(version >= 5025) {
+    switch (Bit(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),0, 4)) {
+      case 0:
+        // 글자에 따라
+        data.lineSpacing.type = "PERCENT"
+        break;
+      case 1:
+        // 고정 값
+        data.lineSpacing.type = "FIXED"
+        break;
+      case 2:
+        // 여백만 지정
+        data.lineSpacing.type = "BETWEEN_LINES"
+        break;
+      case 3:
+        // AT_LEAST(최소)
+        data.lineSpacing.type = "AT_LEAST"
+    }
+  }  
 }
 
 /**
@@ -724,24 +943,146 @@ export const STYLE = (content:HwpBlob) => {
   const size = content.length;
   const styleSize = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
   const data:any = {};
-
-  data.local.name = new TextDecoder("utf-16le").decode(new Uint8Array(content.slice(c.pos, c.move(2 * styleSize))));
-  data.en.size = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
-  data.en.name = new TextDecoder("utf-16le").decode(new Uint8Array(content.slice(c.pos, c.move(2 * data.en.size))));
-  data.property = new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0);
-  data.next_style_id = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
-  data.lang_id = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
-  data.para_shape_id = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
-  data.char_shape_id = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
-  data.unknown = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
-  // console.log("STYLE", data);
+  /**
+   * 스타일의 로컬 이름
+   * 한글 윈도에서는 한글 스타일 이름
+   */
+  data.name = new TextDecoder("utf-16le").decode(new Uint8Array(content.slice(c.pos, c.move(2 * styleSize))));
+  const enSize = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);  
+  // 스타일의 영문 이름
+  data.engName = new TextDecoder("utf-16le").decode(new Uint8Array(content.slice(c.pos, c.move(2 * enSize))));
+  /**
+   * 스타일 종류
+   * PARA: 문단 스타일
+   * CHAR: 글자 스타일
+   */
+  data.type = Bit(new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0), 0, 2) === 0 ? "PARA" : "CHAR";
+  /**
+   * 다음 스타일 아이디 참조 값
+   * 문단 스타일에서 사용자가 리턴 키를 입력하여 다음 문단으로 이동하였을 때 적용될 문단 스타일을 지정함
+   */
+  data.nextStyleIDRef = new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0);
+  /**
+   * 언어 아이디
+   * http://www.w3.org/WAI/ER/IG/ert/iso639.htm
+   */
+  data.langID = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
+  /**
+   * 문단 모양 아이디 참조값
+   * 스타일의 종류가 문단인 경우 반드시 지정해야함
+   */
+  data.paraPrIDRef = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
+  /**
+   * 글자 모양 아이디 참조값
+   * 스타일의 종류가 글자인 경우 반드시 지정해야함
+   */
+  data.charPrIDRef = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
+  /**
+   * lockFrom(unknown)
+   * 양식 모드에서 style 보호하기 여부
+   * 5.0 문서에는 아예 언급이 없으나 hwpx 문서에는 있고 2바이트가 항상 있다. 아마도 이것으로 추정됨.
+   */
+  data.lockForm = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
   return data;
+}
+
+/**
+ * 메모 모양(5.0.2.1 이상)
+ * 5.0 공식 문서에 없다..
+ * @param {Uint8Array} content
+ */
+export const MEMO_SHAPE = (content:HwpBlob) => {
+  const size = content.length;
+  console.log('size', size);
+  const c = new Cursor(0);
+  /**
+   * @id 메모 모양 정보를 구별하기 위한 아이디
+   * @width 메모가 보이는 넓이 4
+   * @lineType 메모의 선 종류 1
+   * @lineColor 메모의 선 색 4
+   * @fillColor 메모의 색 4
+   * @activeColor 메모의 활성화 되었을때 색 4
+   * @memoType 메모 변경 추적을 위한 속성 1
+   * @lineWidth 메모의 라인 두께 4
+   */
+  return {
+    // id: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
+    width: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
+    lineType: new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
+    lineColor: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
+    fillColor: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
+    activeColor: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
+    memoType: new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
+    lineWidth: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
+  };
+}
+
+/**
+ * 변경 추적 작성자(가변)
+ * 모름
+ * @param {Uint8Array} content
+ * @level 1
+ */
+export const TRACK_CHANGE_AUTHOR = (content:HwpBlob) => {
+}
+
+/**
+ * 변경 추적 내용 및 모양
+ * 모름
+ * @param {Uint8Array} content
+ * @level 1
+ */
+export const TRACK_CHANGE = (content:HwpBlob) => {
 }
 /**
  * 문서 임의의 데이터(표 49 참조)
  * @length 54
- * @level 1
+ * @level 0
  * @param {Uint8Array} content
  */
 export const DOC_DATA = (content:HwpBlob) => {
+}
+
+/** 
+ * 금칙처리 문자
+ * @param {Uint8Array} content
+ * @level 0
+ */
+export const FORBIDDEN_CHAR = (content:HwpBlob) => {
+}
+
+/**
+ * 호환 문서(표 54 참조)
+ * @param {Uint8Array} content
+ */
+export const COMPATIBLE_DOCUMENT = (content:HwpBlob) => {
+}
+
+/**
+ * 레이아웃 호환성(표 56 참조)
+ * @param {Uint8Array} content
+ * @level 1
+ * @size 20
+ */
+export const LAYOUT_COMPATIBILITY = (content:HwpBlob) => {
+}
+
+/** 
+ * 배포용 문서
+ * @param {Uint8Array} content
+ * @level 0
+ * @size 256
+ */
+export const DISTRIBUTION_DOC_DATA = (content:HwpBlob) => {
+}
+
+
+/**
+ * 변경 추적 정보
+ * @param {Uint8Array} content
+ * @level 1
+ * @size 1032
+ */
+export const TRACKCHANGE = (content:HwpBlob) => {
+  console.log('asdf');
 }

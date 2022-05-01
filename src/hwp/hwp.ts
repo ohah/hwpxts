@@ -2,11 +2,12 @@ import pako from "pako";
 import CFB from "cfb";
 import { Char, CTRL_ID, HWPTAG } from "./type";
 import { Fontface, Header } from "../type";
-import { buf2hex, CTRL_HEADER, HwpHeader, HwpReader, LINE_SEG, PAGE_DEF, PARA_HEADER, PARA_TEXT, readRecord } from "./util";
+import { buf2hex, HwpHeader, HwpReader, readRecord } from "./util";
 import { Cursor } from "./cursor";
 import { Section } from "../hwpx/type/section";
-import { BIN_DATA, BORDER_FILL, CHAR_SHAPE, DOCUMENT_PROPERTIES, FACE_NAME, ID_MAPPINGS, TAB_DEF } from "./util/DocInfo";
-import { BORDER_FILLS, CHAR_SHAPES, FONT_FACES } from "./util/SetID"
+import { BIN_DATA, BORDER_FILL, BULLET, CHAR_SHAPE, COMPATIBLE_DOCUMENT, DOCUMENT_PROPERTIES, DOC_DATA, FACE_NAME, FORBIDDEN_CHAR, ID_MAPPINGS, LAYOUT_COMPATIBILITY, MEMO_SHAPE, NUMBERING, PARA_SHAPE, STYLE, TAB_DEF, TRACKCHANGE, TRACK_CHANGE, TRACK_CHANGE_AUTHOR } from "./util/DocInfo";
+import { BORDER_FILLS, CHAR_SHAPES, FONT_FACES, STYLES, TAB_DEFS } from "./util/SetID"
+import { CTRL_HEADER, LINE_SEG, PAGE_DEF, PARA_CHAR_SHAPE, PARA_HEADER, PARA_TEXT } from "./util/BodyText";
 export class Hwp {
   #cfb: CFB.CFB$Entry[];
   #hwpx: {
@@ -106,8 +107,8 @@ export class Hwp {
       this.#hwp = HwpReader(this.#cfb);
       // console.log('reader', this.#hwp);
       // console.log('hwpversion', this.version);
-      console.log('docinfo', this.docInfo);
-      // console.log('section', this.section);
+      // console.log('docinfo', this.docInfo);
+      console.log('section', this.section);
       // this.section
     })();
   }
@@ -181,85 +182,83 @@ export class Hwp {
           c.move(size - (end - start));
           break;
         case HWPTAG.TAB_DEF:
-          result.push({name : "TAB_DEF", size : size, content : TAB_DEF(content.slice(c.pos, c.move(size)))});
+          result.push({name : "TAB_DEF", tag_id : tag_id, size : size, content : TAB_DEF(content.slice(c.pos, c.move(size)))});
           var end = c.pos;
           // console.log('FONT_NAME',data)
           c.move(size - (end - start));
           break;
         case HWPTAG.NUMBERING:
-          result.push({name : "NUMBERING", size : size});
+          result.push({name : "NUMBERING", tag_id : tag_id, size : size, content : NUMBERING(content.slice(c.pos, c.move(size)), this.version)});
           var end = c.pos;
           // console.log('FONT_NAME',data)
           c.move(size - (end - start));
           break;
         case HWPTAG.BULLET:
-          result.push({name : "BULLET", size : size});
+          result.push({name : "BULLET", tag_id : tag_id, size : size, content : BULLET(content.slice(c.pos, c.move(size)))});
           var end = c.pos;
           // console.log('FONT_NAME',data)
           c.move(size - (end - start));
           break;
         case HWPTAG.PARA_SHAPE:
-          result.push({name : "PARA_SHAPE", size : size});
+          result.push({name : "PARA_SHAPE", tag_id : tag_id, size : size, content : PARA_SHAPE(content.slice(c.pos, c.move(size)), this.version)});
           var end = c.pos;
           // console.log('FONT_NAME',data)
           c.move(size - (end - start));
           break;
         case HWPTAG.STYLE:
-          result.push({name : "STYLE", size : size});
+          result.push({name : "STYLE", tag_id : tag_id, size : size, content : STYLE(content.slice(c.pos, c.move(size)))});
           var end = c.pos;
-          // console.log('FONT_NAME',data)
           c.move(size - (end - start));
           break;
         case HWPTAG.MEMO_SHAPE:
-          result.push({name : "MEMO_SHAPE", size : size});
+          result.push({name : "MEMO_SHAPE", tag_id : tag_id, size : size, content : MEMO_SHAPE(content.slice(c.pos, c.move(size)))});
           var end = c.pos;
-          // console.log('FONT_NAME',data)
           c.move(size - (end - start));
           break;
         case HWPTAG.TRACK_CHANGE_AUTHOR :
-          result.push({name : "TRACK_CHANGE_AUTHOR", size : size});
+          result.push({name : "TRACK_CHANGE_AUTHOR", tag_id : tag_id, size : size, content : TRACK_CHANGE_AUTHOR(content.slice(c.pos, c.move(size)))});
           var end = c.pos;
           // console.log('FONT_NAME',data)
           c.move(size - (end - start));
           break;
         case HWPTAG.TRACK_CHANGE :
-          result.push({name : "TRACK_CHANGE", size : size});
+          result.push({name : "TRACK_CHANGE", tag_id : tag_id, size : size, content : TRACK_CHANGE(content.slice(c.pos, c.move(size)))});
           var end = c.pos;
           // console.log('FONT_NAME',data)
           c.move(size - (end - start));
           break;
         case HWPTAG.DOC_DATA :
-          result.push({name : "DOC_DATA", size : size});
+          result.push({name : "DOC_DATA", tag_id : tag_id, size : size, content : DOC_DATA(content.slice(c.pos, c.move(size)))});
           var end = c.pos;
           // console.log('FONT_NAME',data)
           c.move(size - (end - start));
           break;
         case HWPTAG.FORBIDDEN_CHAR:
-          result.push({name : "FORBIDDEN_CHAR", size : size});
+          result.push({name : "FORBIDDEN_CHAR", tag_id : tag_id, size : size, content : FORBIDDEN_CHAR(content.slice(c.pos, c.move(size)))});
           var end = c.pos;
           // console.log('FONT_NAME',data)
           c.move(size - (end - start));
           break;
         case HWPTAG.COMPATIBLE_DOCUMENT:
-          result.push({name : "COMPATIBLE_DOCUMENT", size : size});
+          result.push({name : "COMPATIBLE_DOCUMENT", tag_id : tag_id, size : size, content : COMPATIBLE_DOCUMENT(content.slice(c.pos, c.move(size)))});
           var end = c.pos;
           // console.log('FONT_NAME',data)
           c.move(size - (end - start));
           break;
         case HWPTAG.LAYOUT_COMPATIBILITY:
-          result.push({name : "LAYOUT_COMPATIBILITY", size : size});
+          result.push({name : "LAYOUT_COMPATIBILITY", tag_id : tag_id, size : size, content : LAYOUT_COMPATIBILITY(content.slice(c.pos, c.move(size)))});
           var end = c.pos;
           // console.log('FONT_NAME',data)
           c.move(size - (end - start));
           break;
         case HWPTAG.DISTRIBUTE_DOC_DATA:
-          result.push({name : "DISTRIBUTE_DOC_DATA", size : size});
+          result.push({name : "DISTRIBUTE_DOC_DATA", tag_id : tag_id, size : size, content : DISTRIBUTE_DOC_DATA(content.slice(c.pos, c.move(size)))});          
           var end = c.pos;
           // console.log('FONT_NAME',data)
           c.move(size - (end - start));
           break;
         case HWPTAG.TRACKCHANGE:
-          result.push({name : "TRACKCHANGE", size : size});
+          result.push({name : "TRACKCHANGE", tag_id : tag_id, size : size, content : TRACKCHANGE(content.slice(c.pos, c.move(size)))});
           var end = c.pos;
           // console.log('FONT_NAME',data)
           c.move(size - (end - start));
@@ -275,9 +274,11 @@ export class Hwp {
       }
     }
     const fontfaces = FONT_FACES(result);
-    const charPr = CHAR_SHAPES(result);
     const borderFill = BORDER_FILLS(result);
-    console.log('borderFill', borderFill)
+    const charPr = CHAR_SHAPES(result);
+    const tabProperties = TAB_DEFS(result);
+    const styles = STYLES(result);
+    // console.log('styles', styles)
     // return this.hwp.find((entry)=>entry.name === "DocInfo").content;
     return result;
   }
@@ -321,7 +322,7 @@ export class Hwp {
             c.move(size - (end - start));
             break;
           case HWPTAG.PARA_CHAR_SHAPE:
-            result.push({tag_id : tag_id, level : level, name : "PARA_CHAR_SHAPE", size : size});
+            result.push({tag_id : tag_id, level : level, name : "PARA_CHAR_SHAPE", size : size, content : PARA_CHAR_SHAPE(content.slice(c.pos, c.pos + size))});
             var end = c.pos;
             c.move(size - (end - start));
             break;
@@ -493,3 +494,7 @@ export class Hwp {
 }
 
 export default Hwp;
+
+function DISTRIBUTE_DOC_DATA(arg0: any) {
+  throw new Error("Function not implemented.");
+}
