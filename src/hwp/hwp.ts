@@ -7,7 +7,8 @@ import { Cursor } from "./cursor";
 import { Section } from "../hwpx/type/section";
 import { BIN_DATA, BORDER_FILL, BULLET, CHAR_SHAPE, COMPATIBLE_DOCUMENT, DOCUMENT_PROPERTIES, DOC_DATA, FACE_NAME, FORBIDDEN_CHAR, ID_MAPPINGS, LAYOUT_COMPATIBILITY, MEMO_SHAPE, NUMBERING, PARA_SHAPE, STYLE, TAB_DEF, TRACKCHANGE, TRACK_CHANGE, TRACK_CHANGE_AUTHOR } from "./util/DocInfo";
 import { BORDER_FILLS, CHAR_SHAPES, FONT_FACES, STYLES, TAB_DEFS } from "./util/SetID"
-import { CTRL_HEADER, LINE_SEG, PAGE_DEF, PARA_CHAR_SHAPE, PARA_HEADER, PARA_TEXT } from "./util/BodyText";
+import { CTRL_HEADER, FOOTNOTE_SHAPE, LINE_SEG, PAGE_BORDER_FILL, PAGE_DEF, PARA_CHAR_SHAPE, PARA_HEADER, PARA_TEXT, TABLE } from "./util/BodyText";
+import { SECTION } from "./util/Section";
 export class Hwp {
   #cfb: CFB.CFB$Entry[];
   #hwpx: {
@@ -108,7 +109,8 @@ export class Hwp {
       // console.log('reader', this.#hwp);
       // console.log('hwpversion', this.version);
       // console.log('docinfo', this.docInfo);
-      console.log('section', this.section);
+      // console.log('section', this.section);
+      console.log('json', this.json);
       // this.section
     })();
   }
@@ -308,7 +310,7 @@ export class Hwp {
             c.move(size - (end - start));
             break;
           case HWPTAG.PARA_HEADER:
-            result.push({tag_id : tag_id, level : level, name : "PARA_HEADER", size : size, content : PARA_HEADER(content.slice(c.pos, c.pos + size))});
+            result.push({tag_id : tag_id, level : level, name : "PARA_HEADER", size : size, content : PARA_HEADER(content.slice(c.pos, c.pos + size), version)});
             var end = c.pos;
             c.move(size - (end - start));
             break;
@@ -352,12 +354,12 @@ export class Hwp {
             c.move(size - (end - start));
             break;
           case HWPTAG.FOOTNOTE_SHAPE:
-            result.push({tag_id : tag_id, level : level, name : "FOOTNOTE_SHAPE", size : size});
+            result.push({tag_id : tag_id, level : level, name : "FOOTNOTE_SHAPE", size : size, content: FOOTNOTE_SHAPE(content.slice(c.pos, c.pos + size))});
             var end = c.pos;
             c.move(size - (end - start));
             break;
           case HWPTAG.PAGE_BORDER_FILL:
-            result.push({tag_id : tag_id, level : level, name : "PAGE_BORDER_FILL", size : size});
+            result.push({tag_id : tag_id, level : level, name : "PAGE_BORDER_FILL", size : size, content : PAGE_BORDER_FILL(content.slice(c.pos, c.pos + size))});
             var end = c.pos;
             c.move(size - (end - start));
             break;
@@ -367,7 +369,8 @@ export class Hwp {
             c.move(size - (end - start));
             break;
           case HWPTAG.TABLE:
-            result.push({tag_id : tag_id, level : level, name : "TABLE", size : size});
+            console.log('table', '??');
+            result.push({tag_id : tag_id, level : level, name : "TABLE", size : size, content : TABLE(content.slice(c.pos, c.pos + size), version)});
             var end = c.pos;
             c.move(size - (end - start));
             break;
@@ -472,6 +475,7 @@ export class Hwp {
         p : []
       }
     };
+    return SECTION(this.section);
     this.section.forEach((sec) => {
       result.sec.p.push({
         columnBreak : 0,

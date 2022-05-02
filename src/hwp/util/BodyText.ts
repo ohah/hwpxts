@@ -1,6 +1,6 @@
 import { Cursor } from "../cursor";
 import { Char, CTRL_ID, HwpBlob } from "../type";
-import { Bit, isCommon, buf2hex, OBJECT_COMMON_ATTRIBUTE } from "../util";
+import { Bit, isCommon, buf2hex, OBJECT_COMMON_ATTRIBUTE, RGB } from "../util";
 import { SECTION_DEFINE, COLD_DEFINE } from "./CtrlID";
 
 /**
@@ -8,8 +8,10 @@ import { SECTION_DEFINE, COLD_DEFINE } from "./CtrlID";
  * @param content 
  */
  export const PAGE_BORDER_FILL = (content: HwpBlob) => {
+  const size = content.length;
   const c = new Cursor(0);
-  const attribute = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true);
+  // console.log('PAGE_BORDER_FILL', size);
+  const attribute:any = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true);
   const data:any = {
     offset : {
       left : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
@@ -20,8 +22,8 @@ import { SECTION_DEFINE, COLD_DEFINE } from "./CtrlID";
     borderFillIDRef : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
   }
   data.textBorder = Bit(attribute, 0, 0) === 0 ? "CONTENT" : "PAPER";
-  data.attribute.headerInside = Bit(attribute, 1, 1);
-  data.attribute.footerInside = Bit(attribute, 2, 2);
+  data.headerInside = Bit(attribute, 1, 1);
+  data.footerInside = Bit(attribute, 2, 2);
   switch (Bit(attribute, 3, 4)) {
     case 0:
       data.fillArea = "PAPER";
@@ -34,9 +36,17 @@ import { SECTION_DEFINE, COLD_DEFINE } from "./CtrlID";
       break;
   }
   const { left, right, top, botom } = data.offset;
-  const { borderFillIDRef, textBorder, attribute : attr } = data;
-  const { headerInside, footerInside } = attr;
-  
+  const { headerInside, footerInside, borderFillIDRef, textBorder, fillArea } = data;
+  return {
+    offset: {
+      ...data.offset,
+    },
+    borderFillIDRef: borderFillIDRef,
+    textBorder: textBorder,
+    headerInside: headerInside,
+    footerInside: footerInside,
+    fillArea: fillArea,
+  }
 }
 /**
  * 페이지 정의
@@ -76,14 +86,15 @@ export const PAGE_DEF = (content: HwpBlob) => {
   const { width, height, margin, landscape, gutterType } = data;
   const { left, right, top, bottom, header, footer, gutter } = margin;
   const pagepr = {
-    landscape : landscape,
-    width : width,
-    height : height,
-    gutterType : gutterType,
-    margin : {
+    landscape: landscape,
+    width: width,
+    height: height,
+    gutterType: gutterType,
+    margin: {
       ...margin
     }
   }
+  return pagepr;
 }
 
 /**
@@ -156,7 +167,8 @@ export const CTRL_HEADER = (content:HwpBlob) => {
    */
   const ctrlId = new TextDecoder("utf8").decode((content as any).slice(c.pos, c.move(4)).reverse());
   const ctrl_content = content.slice(4, content.length);
-  console.log('야야', ctrlId);
+  // console.log('야야', ctrlId);
+  let result:any = [];
   // 공통 속성
   const isComAttr = isCommon(ctrlId);
   switch (ctrlId) {
@@ -164,24 +176,28 @@ export const CTRL_HEADER = (content:HwpBlob) => {
     case CTRL_ID.secd:
       // const result = new TextDecoder("utf8").decode(content as any);
       // OBJECT_COMMON_ATTRIBUTE(content.slice(4, content.length ));
-      console.log('SECTION_DEFINE', SECTION_DEFINE(ctrl_content));
+      result = SECTION_DEFINE(ctrl_content);
       // const { tag_id, level, size : secDSize, move } = readRecord(new Uint8Array(content.slice(c.pos, c.move(4) + 4)));
       // console.log('secd', tag_id, level, size, move);   
       break;
     // 단
     case CTRL_ID.cold:
-      return COLD_DEFINE(ctrl_content);
+      result = COLD_DEFINE(ctrl_content);
       break;
     case CTRL_ID.tbl:
       const tbl = OBJECT_COMMON_ATTRIBUTE(content.slice(0, content.length));
-      console.log('tbl', tbl, buf2hex(content));
+      // console.log('tbl', tbl, buf2hex(content));
+      break;
+    case CTRL_ID.pgct:
+      console.log('pgct');
       break;
     default:
       console.warn('작업 안된 ctrl_id', ctrlId)
       break;
   }
   return {
-    
+    ctrlId: ctrlId,
+    ...result,
   };
 }
 
@@ -190,7 +206,7 @@ export const CTRL_HEADER = (content:HwpBlob) => {
  * @explain 길이 22, 5032버전 이상일시 변경추적 병합 문단여부 추가됨(2바이트)
  * @length 22 OR 24
  */
-export const PARA_HEADER = (content:HwpBlob) => {
+export const PARA_HEADER = (content:HwpBlob, version:number) => {
   const size = content.length;
   const c = new Cursor(0);
   //chars
@@ -199,17 +215,17 @@ export const PARA_HEADER = (content:HwpBlob) => {
     //nchars
     text &= 0x7fffffff;
   }
-  const data = {
+  const data:any = {
     /** 텍스트 */
     text : text,
     /** 컨트롤 마스크 */
     control_mask: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
     /** 문단 모양 아이디 참조값 */
-    parapridref: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
+    paraPrIDRef: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
     /** 문단 스타일 아이디 참조값 */
-    styleidref: new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
+    styleIDRef: new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
     /** 단 나누기 종류 */
-    paragraph_dvide_type: new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
+    DivideType: new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0),
     /** 글자 모양 정보 수 */
     text_shapes: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint8(0),
     /** range tag 정보 수 */
@@ -219,11 +235,31 @@ export const PARA_HEADER = (content:HwpBlob) => {
     /** 문단 Instance Id */
     id: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
     /** 변경추적 병합 문단 여부(5.0.3.2 이상) */
-    merged : null
+    merged : 0
   }
-  if(size === 24) {
+  switch (data.DivideType) {
+    case 0x01:
+      // 구역 나누기
+      data.Type = "구역나누기";
+      break;
+    case 0x02:
+      // 다단 나누기
+      data.Type = "다단 나누기"
+      break;
+    case 0x04:
+      // 쪽 나누기
+      data.Type = "쪽 나누기"
+      break;
+    case 0x08:
+      // 단 나누기
+      data.Type = "단 나누기"
+    default:
+      break;
+  }
+  if(version === 5032) {
     data.merged = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
   }
+  // console.log('PARAP_HEADER', data);
   return data;
 }
 
@@ -295,7 +331,7 @@ export const PARA_TEXT = (content:HwpBlob, ctrl_id:CTRL_ID) => {
         pc.move(16);
         break;
       case Char.PARA_BREAK:
-        console.log('PARA_BREAK', Char.PARA_BREAK);
+        // console.log('PARA_BREAK', Char.PARA_BREAK);
         result.ctrlId.push(new TextDecoder("utf8").decode(text_content.slice(pc.pos, pc.pos + 2).reverse()));
         pc.move(2);
         break;
@@ -348,7 +384,7 @@ export const PARA_TEXT = (content:HwpBlob, ctrl_id:CTRL_ID) => {
   }
   const text = new Uint8Array(paragraph_text);
   result.text = new TextDecoder("utf-16le").decode(text);
-  console.log(result);
+  // console.log(result);
   return result;
 }
 
@@ -396,4 +432,159 @@ export const PARA_RANGE_TAG = (content:HwpBlob) => {
     data.push(range_tag);
   }
   return data;
+}
+
+/**
+ * FOOTNOTE_SHAPE
+ * @param content
+ * @size 28(공식문서 26)
+ * @debug noteLine(length)[구분선 길이]가 HWPUINT16이 아닌 INT32임. 길이도 2가 아닌 4로 되어 있음.
+ */
+export const FOOTNOTE_SHAPE = (content:HwpBlob) => {
+  const c = new Cursor(0);
+  const size = content.length;
+  const attr = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true);
+  /**
+   * 번호 모양
+   * 0~16은 범용
+   * 0x80, 0x81은 각주/미주 전용
+   */
+  const autoNumForamt = {
+    // 번호 모양 종류
+    type: Bit(attr, 0, 7),
+    /**
+     * 사용자 정의 기호
+     * type이 USER_CHAR로 설정된 경우, 번호 모양으로 사용될 사용자 정의 글자
+     */
+    userChar: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint8(0),
+    // 앞 장식 문자
+    prefixChar: new TextDecoder("utf-16le").decode(content.slice(c.pos, c.move(2)) as any),
+    // 뒷 장식 문자
+    suffixChar: new TextDecoder("utf-16le").decode(content.slice(c.pos, c.move(2)) as any),
+    // 각주 내용 중 번호 코드의 모양을 위 첨자 형식으로 할 지 여부
+    supscript: Bit(attr, 12, 12)
+  };
+  // footNotePr numbering
+  const numbering = {
+    /**
+     * 0 앞 구역에 이어서
+     * 1 현재 구역부터 새로 시작
+     * 2 쪽마다 새로 시작(각주 전용)
+     */
+    type: Bit(attr, 10, 11),
+    // 시작번호
+    newNum: new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
+  }
+  // 구분선 길이
+  /**
+   * FIX: 구분선 길이의 데이터 형이 INT32이며 크기도 4이다.
+   */
+  const length = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true);
+  // 구분선 위 여백
+  // c.move(2);
+  const aboveLine = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
+  // 구분선 아래 여백
+  const belowLine = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
+  // 주석 사이 여백
+  const betweenNotes = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
+  // 구분선 종류(테두리/배경의 테두리 선 종류 참조)
+  const type = new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0);
+  // 구분선 굵기(테두리/배경의 테두리 선 굵기 참조)
+  const width = new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0);
+  // 구분선 색상(테두리/배경의 테두리 선 색상 참조)
+  const color = RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true));
+  // 구분선 위치(테두리/배경의 테두리 선 위치 참조) (일것이다?)
+  // const breakline_unknown = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
+  /**
+   * 한 페이지 내에서 각주를 다단에 위치시킬 방법
+   * 각주인 경우(footNotePr)
+   * EACH_COLUMN | MERGED_COLUMN | RIGHT_MOST_COLUMN
+   * 미주인 경우(endNotePr)
+   * END_OF_DOCUMENT | END_OF_SECTION
+   */
+  const place = Bit(attr, 8, 9);
+  // 각주 내용 중 번호 코드의 모양을 위 첨자 형식으로 할 지 여부
+  const beneathText = Bit(attr, 13, 13);
+  // 각주/미주 내에서 사용되는 구분선 모양 정보를 가지고 있는 요소
+  const noteLine = {
+    /**
+     * 구분선 길이
+     * 0(구분선 없음), 5cm, 2cm, Column/3(단 크기의 1/3), Column(단 크기), 그 외(HWPUINT 단위의 사용자 지정 길이)
+     */
+    length: length,
+    // 구분선 종류
+    type: type,
+    // 구분선 굵기(단위는 mm)
+    width: width,
+    // 구분선 색
+    color: color,
+  };
+  const noteSpacing = {
+    // 주석 사이 여백
+    betweenNotes: betweenNotes,
+    // 구분선 아래 여백
+    belowLine: belowLine,
+    // 구분선 위 여백
+    aboveLine: aboveLine,
+  }
+  const placement = {
+    // 한 페이지 내에서 격주를 다단계 어떻게 위치시킬지에 대한 설정
+    place: place,
+    // 텍스트에 이어 바로 출력할지 여부
+    beneathText: beneathText,
+  }
+  return {
+    autoNumForamt: autoNumForamt,
+    noteLine: noteLine,
+    noteSpacing: noteSpacing,
+    numbering: numbering,
+    placement: placement,
+  }
+}
+/**
+ * 테이블(표 개체)
+ * @n 개체 공통 속성(표 68 참조)
+ * @n2 표 개체 속성(표 75 참조)
+ * @n3 셀 리스트(표 79 참조) 셀 size * 셀 개수
+ * @size n + n2 + n3
+ */
+export const TABLE = (content:HwpBlob, version:number) => {
+  const c = new Cursor(0);
+  const size = content.length;
+  console.log('TABLE', size);
+  // const n = OBJECT_COMMON_ATTRIBUTE(content.slice(c.pos, c.move(46)));
+  // console.log('TABLE', n);
+  // n2
+  // 속성
+  const attr = new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true);
+  // RowCount
+  const rowCnt = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
+  // colCnt
+  const colCnt = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
+  // CellSpacing
+  const cellSpacing = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
+  // 안쪽 여백
+  const inMargin = {
+    // 왼쪽
+    left : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
+    // 오른쪽
+    right : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
+    // 위쪽
+    top : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
+    // 아래쪽
+    bottom : new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true),
+  }
+  for(let i=0; i < rowCnt; i++) {
+    // 셀 사이즈
+    const cellSize = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint8(0);
+    console.log('cellSize', cellSize);
+  }
+  // Border Fill ID
+  const borderFillIDRef = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
+  if(version >= 5010) {
+    // Valid Zone Info Size (5.0.1.0 이상)
+    const validZoneInfoSize = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
+    // 영역 속성(표 73 참조) (5.0.1.0 이상)
+    const zoneAttr = new DataView(new Uint8Array(content.slice(c.pos, c.move(10 * validZoneInfoSize))).buffer, 0).getUint32(0, true);
+  }
 }
