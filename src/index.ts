@@ -1,8 +1,12 @@
 import JSzip from "jszip";
 import { Hwpx } from "./hwpx/hwpx";
 import { Hwp } from "./hwp/hwp";
-var zip = new JSzip();
+import SVGDocument from "./svg/SVGDocument";
+const zip = new JSzip();
+const svg = new SVGDocument();
 (async () => {
+  // document.body.appendChild(svg.run());
+  svg.run();
   const hwp = new Hwp(`./hwp/text.hwp`);
   // return false;
   const hwpx = new Hwpx();
@@ -13,7 +17,8 @@ var zip = new JSzip();
   // console.log('table', table);
   // console.log('array', await table.arrayBuffer());
   // console.log('header', await hwpx.header);
-  document.body.innerHTML = JSON.stringify(await hwpx.section, null, 2);
+  // document.body.innerHTML = JSON.stringify(await hwpx.section, null, 2);
+  
   // console.log('section', await hwpx.section);
   // document.body.innerHTML = JSON.stringify(await hwpx.section, null, 2);
   document.body.style.whiteSpace = "pre-wrap";

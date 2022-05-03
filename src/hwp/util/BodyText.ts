@@ -493,8 +493,6 @@ export const FOOTNOTE_SHAPE = (content:HwpBlob) => {
   const width = new DataView(new Uint8Array(content.slice(c.pos, c.move(1))).buffer, 0).getUint8(0);
   // 구분선 색상(테두리/배경의 테두리 선 색상 참조)
   const color = RGB(new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true));
-  // 구분선 위치(테두리/배경의 테두리 선 위치 참조) (일것이다?)
-  // const breakline_unknown = new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true);
   /**
    * 한 페이지 내에서 각주를 다단에 위치시킬 방법
    * 각주인 경우(footNotePr)
