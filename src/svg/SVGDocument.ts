@@ -9,13 +9,22 @@ interface SVGAttribute {
 
 export class SVGDocument {
   // 최상위 SVGElement를 반환한다.
+  /** 루트(페이지당) */
   public root: SVGSVGElement;
+  // 미리보기 감싸는 div
+  public wrapper:Element;
   public file:hwpx;
   public page:SVGElement[];
   constructor(file:hwpx) {
     console.log('file', file);
     this.file = file;
+    this.wrapper = document.createElement('div');
     this.root = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    this.root.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    this.root.setAttribute("version", "1.1");
+    this.root.setAttribute("viewBox", "0 0 1200 1200");
+    this.root.setAttribute("preserveAspectRatio", "xMidYMid meet");
+    // this.root.setAttribute("width", "100%");
     this.page = this.page ? this.page : [];
     this.drawSection();
   }
@@ -70,8 +79,8 @@ export class SVGDocument {
           this.drawPage(run.secPr.pagePr as PagePR);
         }
       });
-    } else {
-      const run = (p.run as any) as Run;
+      console.log('p.run', p.run);
+      const run = p.run.find((run)=>run.t)
       const { linesegarray } = p;
       if(run.t) {
         // console.log('run', run.t, linesegarray.lineseg);
@@ -104,6 +113,55 @@ export class SVGDocument {
           });
         }
       }
+    } else {
+      const run = (p.run as any) as Run;
+      const { linesegarray } = p;
+      if(run.t) {
+        // console.log('run', run.t, linesegarray.lineseg);
+        if(["페이지2", "페이지3"].includes(run.t)) {
+          console.log(run.t, linesegarray.lineseg);
+        }
+        if((linesegarray.lineseg as any).length) {
+          for(let i = 0; i < (linesegarray.lineseg as any).length; i++) {
+            const length = (linesegarray.lineseg as any).length;
+            const lineseg = (linesegarray.lineseg as any)[i] as LineSeg;
+            const nextlineseg = (linesegarray.lineseg as any)[i + 1] as LineSeg;
+            const start = lineseg.textpos;
+            const end = length !== i + 1 ? nextlineseg.textpos : (run.t as any).length;
+            // console.log('start', start, 'end', end);
+            const text = this.page[this.page.length - 1].addChild("text", {
+              y: linesegarray.lineseg[i].vertpos ? linesegarray.lineseg[i].vertpos.HWPUINT() : 0,
+              x: linesegarray.lineseg[i].horzpos ? linesegarray.lineseg[i].horzpos.HWPUINT() : 0,
+              // width : linesegarray.lineseg[i].horzsize ? linesegarray.lineseg[i].horzsize.HWPUINT() : 0,
+              // height : linesegarray.lineseg[i].textheight ? linesegarray.lineseg[i].textheight.HWPUINT() : 0,
+            });
+            text.addChild("tspan", {
+              dx:0,
+              dy:0,
+              y: linesegarray.lineseg[i].vertpos ? linesegarray.lineseg[i].vertpos.HWPUINT() : 0,
+              x: linesegarray.lineseg[i].horzpos ? linesegarray.lineseg[i].horzpos.HWPUINT() : 0,
+              width : linesegarray.lineseg[i].horzsize ? linesegarray.lineseg[i].horzsize.HWPUINT() : 0,
+              height : linesegarray.lineseg[i].textheight ? linesegarray.lineseg[i].textheight.HWPUINT() : 0,
+              text : run.t.substring(start, end),
+            })
+          }
+        } else {
+          const text = this.page[this.page.length - 1].addChild("text", {
+            y: linesegarray.lineseg.vertpos ? linesegarray.lineseg.vertpos.HWPUINT() : 0,
+            x: linesegarray.lineseg.horzpos ? linesegarray.lineseg.horzpos.HWPUINT() : 0,
+            // width : linesegarray.lineseg.horzsize ? linesegarray.lineseg.horzsize.HWPUINT() : 0,
+            // height : linesegarray.lineseg.textheight ? linesegarray.lineseg.textheight.HWPUINT() : 0,
+            // text: run.t,
+          });
+          text.addChild("tspan", {
+            dx:0,
+            dy:0,
+            width : linesegarray.lineseg.horzsize ? linesegarray.lineseg.horzsize.HWPUINT() : 0,
+            height : linesegarray.lineseg.textheight ? linesegarray.lineseg.textheight.HWPUINT() : 0,
+            text : run.t,
+          })
+        }
+      }
     }
   }
   /**
@@ -113,34 +171,46 @@ export class SVGDocument {
    */
   async drawPage(pagePr:PagePR) {
     const { gutterType, margin, landscape, width, height } = pagePr;
-    this.root.setAttribute("width", `${width.HWPUINT()}px`);
-    this.root.setAttribute("height", `${height.HWPUINT()}px`);
-    this.page.push(this.addChild("g", {
-      style : `margin-bottom:${margin.bottom.HWPUINT()}px;margin-top:${margin.top.HWPUINT()}px;margin-left:${margin.left.HWPUINT()}px;margin-right:${margin.right.HWPUINT()}px;`,
-    }));
-    this.page[this.page.length - 1].addChild("rect", {
+    // this.root.setAttribute("width", `${width.HWPUINT()}px`);
+    // this.root.setAttribute("height", `${height.HWPUINT()}px`);
+    const pageWrapper = this.root.cloneNode(true) as SVGElement;
+    
+    // 페이지 사각형.
+    pageWrapper.addChild("rect", {
+      x:`${width.HWPUINT() / 4}px`,
+      y:0,
+      // transfrom:"translate(-25, 0)",
       width: `${width.HWPUINT()}px`,
       height: `${height.HWPUINT()}px`,
-      style : `margin-bottom:${margin.bottom.HWPUINT()}px;margin-top:${margin.top.HWPUINT()}px;margin-left:${margin.left.HWPUINT()}px;margin-right:${margin.right.HWPUINT()}px;`,
+      // width:"100%",
+      // height:"100%",
+      
+      // style : `margin-bottom:${margin.bottom.HWPUINT()}px;margin-top:${margin.top.HWPUINT()}px;margin-left:${margin.left.HWPUINT()}px;margin-right:${margin.right.HWPUINT()}px;`,
       fill:"#ffffff",
-    })
-  }
-  /**
-   * 하위 svg 요소 추가
-   */
-  addChild(name:string, attr:SVGAttribute):SVGElement {
-    const child = document.createElementNS("http://www.w3.org/2000/svg", name);
-    Object.keys(attr).forEach(key => {
-      child.setAttribute(key, attr[key].toString());
-    })
-    this.root.appendChild(child);
-    return child;
+    });
+
+    // 페이지 크기 svg 엘리먼트
+    this.page.push(pageWrapper.addChild("svg", {
+      // width: `${width.HWPUINT()}`,
+      // height: `${height.HWPUINT()}`,
+      x: `${(width.HWPUINT() / 4) + margin.left.HWPUINT()}`,
+      y: `${margin.top.HWPUINT()}`,
+      style: `overflow:visible;`
+      // viewBox: "0 0 100 100",
+      // x: "1000px",
+      // y: "1000px",
+      // fill:"#000000",
+      // "stroke-width": "10",
+      // style : `overflow:visible;margin-bottom:${margin.bottom.HWPUINT()}px;margin-top:${margin.top.HWPUINT()}px;margin-left:${margin.left.HWPUINT()}px;margin-right:${margin.right.HWPUINT()}px;`,
+    }));
+   
+    this.wrapper.appendChild(pageWrapper);
   }
   /**
    * 실제로 그리는 부분
    */
   run() {
-    document.body.appendChild(this.root);
+    document.body.appendChild(this.wrapper);
   }
 }
 export default SVGDocument;
@@ -153,8 +223,11 @@ declare global {
     addChild(name:string, attr:SVGAttribute):SVGElement;
   }
 }
+
 SVGElement.prototype.addChild = function (name:string, attr:SVGAttribute):SVGElement {
   const child = document.createElementNS("http://www.w3.org/2000/svg", name);
+  // child.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  // child.setAttribute("version", "1.1");
   Object.keys(attr).forEach(key => {
     if(key === 'text') {
       child.textContent = attr[key].toString();

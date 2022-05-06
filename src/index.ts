@@ -4,7 +4,7 @@ import { Hwp } from "./hwp/hwp";
 const zip = new JSzip();
 (async () => {
   // document.body.appendChild(svg.run());
-  const hwp = new Hwp(`./hwp/text-2.hwp`);
+  // const hwp = new Hwp(`./hwp/text-2.hwp`);
   // return false;
   const hwpx = new Hwpx();
   // hwpx.filepath = "./hwpx/text.hwpx";
