@@ -1,6 +1,6 @@
 import { Cursor } from "../cursor";
 import { Char, CTRL_ID, HwpBlob } from "../type";
-import { Bit, isCommon, buf2hex, OBJECT_COMMON_ATTRIBUTE, RGB } from "../util";
+import { Bit, isCommon, buf2hex, OBJECT_COMMON_ATTRIBUTE, RGB, isElement } from "../util";
 import { SECTION_DEFINE, COLD_DEFINE } from "./CtrlID";
 
 /**
@@ -109,32 +109,50 @@ export const LINE_SEG = (content:HwpBlob) => {
   const c = new Cursor(0);
   for (let i = 0; i < size; i++) {
     const result = {
+      // 텍스트 시작 위치
       textpos: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getUint32(0, true),
+      // 줄의 세로 위치
       vertpos: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
+      // 줄의 높이
       textheight: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
+      // 텍스트 부분의 높이
       vertsize: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
+      // 줄의 세로 위치에서 베이스라인까지의 거리
       baseline: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
+      // 줄간격
       spacing: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
+      // 컬럼에서의 시작 위치
       horzpos: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
+      // 새그먼트의 폭
       horzsize: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
+      // 태그(flags)
       flags: new DataView(new Uint8Array(content.slice(c.pos, c.move(4))).buffer, 0).getInt32(0, true),
     }
     const flagsBit:any = {}
+    // 페이지 첫 줄인지 여부
     flagsBit.page_start_line = Bit(result.flags, 0, 0);
-    // flagsBit.page_start_line = [];
-    // for (let k = 0; k < 36; k++) {
-    //   flagsBit.page_start_line.push(Bit(result.flags, k, k));
-    // }
+    // 컬럼의 첫 줄인지 여부
     flagsBit.column_start_line = Bit(result.flags, 1, 1);
+    // 텍스트가 배열되지 않은 빈 세그먼트인지 여부
     flagsBit.empty_text = Bit(result.flags, 16, 16);
+    // 줄의 첫 세그먼트인지 여부
     flagsBit.line_first_sagment = Bit(result.flags, 17, 17);
+    // 줄의 마지막 세그먼트인지 여부
     flagsBit.line_last_sagment = Bit(result.flags, 18, 18);
+    // 줄의 마지막에 auto-hyphenation이 수행되었는지 여부
     flagsBit.line_last_auto_hyphenation = Bit(result.flags, 19, 19);
+    // indentaion 적용
     flagsBit.indent = Bit(result.flags, 20, 20);
+    // 문단 머리 모양 적용
     flagsBit.ctrl_id_header_shape_apply = Bit(result.flags, 21, 21);
+    // 구현상의 편의를 위한 property
     flagsBit.property = Bit(result.flags, 31, 31);
+    console.log(result.flags, flagsBit, buf2hex(content.slice(c.pos - 4, c.pos)))
     // console.log('플라그쉽', flagsBit);
-    seg.push(result);
+    seg.push({
+      ...result,
+      ...flagsBit,
+    });
   }
   // console.log('result', seg);
   return seg;
@@ -171,6 +189,9 @@ export const CTRL_HEADER = (content:HwpBlob) => {
   let result:any = [];
   // 공통 속성
   const isComAttr = isCommon(ctrlId);
+  const isEleAttr = isElement(ctrlId);
+  console.log('ctrlId', ctrlId);
+  
   switch (ctrlId) {
     // 섹션
     case CTRL_ID.secd:
@@ -190,6 +211,9 @@ export const CTRL_HEADER = (content:HwpBlob) => {
       break;
     case CTRL_ID.pgct:
       console.log('pgct');
+      break;
+    case CTRL_ID.line:
+      console.log('한줄 끝');
       break;
     default:
       console.warn('작업 안된 ctrl_id', ctrlId)

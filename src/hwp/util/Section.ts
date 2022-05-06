@@ -14,7 +14,7 @@ export const SECTION = (stream:any) => {
     const { tag_id, content } = row;
     if(tag_id === HWPTAG.CTRL_HEADER) {
       const ctrlId = content.ctrlId;
-      console.log('ctrlId', ctrlId);
+      // console.log('ctrlId', ctrlId);
     }
   });
   return {

@@ -3,9 +3,10 @@ import { Url } from "url";
 import { X2jOptions, XMLParser } from "fast-xml-parser"
 import { Content, Header } from "../type";
 import { String2Number } from "./util";
+import SVGDocument from "../svg/SVGDocument";
 const options: Partial<X2jOptions> = {
   ignoreAttributes: false,
-  // removeNSPrefix: true,
+  removeNSPrefix: true,
   attributeNamePrefix: "",
   allowBooleanAttributes: false,
   attributesGroupName : false,
@@ -120,7 +121,7 @@ export class Hwpx extends JSZip {
    * section 데이터 가져옴
    * @returns XMLDocument
    */
-  get section(): [Document] | any {
+  get section(): Promise<any[]> {
     const sections: Array<Document> = [];
     return (async () => {
       await this.Init();
@@ -129,8 +130,6 @@ export class Hwpx extends JSZip {
         await Promise.all(
           Object.keys(this.zip.files).map(async (file) => {
             if (name.includes(file)) {
-              // console.log(await this.zip.files[`${file}`].async("string"));
-              document.body.innerHTML += await this.zip.files[`${file}`].async("string");
               const json = String2Number(new XMLParser(options).parse(await this.zip.files[`${file}`].async("string")))
               sections.push(json);
               // return json;
@@ -225,11 +224,9 @@ export class Hwpx extends JSZip {
     return (async () => {
       await this.Init();
       try {
-        if (this.zip.files["mimetype.xml"]) {
-          const parser = new DOMParser();
-          const xmlDoc = parser.parseFromString(await this.zip.files["Contents/header.xml"].async("string"), "application/xml");
-          // console.log('name', name, xmlDoc);
-          return xmlDoc;
+        if (this.zip.files["mimetype"]) {
+          const json = String2Number(new XMLParser(options).parse(await this.zip.files["mimetype"].async("string")))
+          return json;
         }
         // console.log(await this.arraybuffer());
       } catch (e) {
@@ -299,6 +296,15 @@ export class Hwpx extends JSZip {
         console.log("error", e);
       }
     })();
+  }
+
+  /**
+   * 그리기
+   * @type { Hwpx }
+   */
+  draw(): void {
+    const svg = new SVGDocument(this);
+    svg.run();
   }
 }
 

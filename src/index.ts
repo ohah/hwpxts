@@ -1,16 +1,16 @@
 import JSzip from "jszip";
 import { Hwpx } from "./hwpx/hwpx";
 import { Hwp } from "./hwp/hwp";
-import SVGDocument from "./svg/SVGDocument";
 const zip = new JSzip();
-const svg = new SVGDocument();
 (async () => {
   // document.body.appendChild(svg.run());
-  svg.run();
-  const hwp = new Hwp(`./hwp/text.hwp`);
+  const hwp = new Hwp(`./hwp/text-2.hwp`);
   // return false;
   const hwpx = new Hwpx();
-  hwpx.filepath = "./hwpx/text.hwpx";
+  // hwpx.filepath = "./hwpx/text.hwpx";
+  hwpx.filepath = "./hwpx/text-2.hwpx";
+  hwpx.draw();
+  // hwpx.draw();
   // console.log('hwpx', hwpx);
   // console.log('hwpx', hwpx.hwpx);
   // console.log("test");
@@ -21,7 +21,7 @@ const svg = new SVGDocument();
   
   // console.log('section', await hwpx.section);
   // document.body.innerHTML = JSON.stringify(await hwpx.section, null, 2);
-  document.body.style.whiteSpace = "pre-wrap";
+  // document.body.style.whiteSpace = "pre-wrap";
   // console.log('content', await (await hwpx.content).package);
   // console.log('metaInf', await hwpx.metaInf);
   // console.log('preview', await hwpx.preview);

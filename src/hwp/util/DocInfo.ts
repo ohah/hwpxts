@@ -772,8 +772,8 @@ export const NUMBERING = (content:HwpBlob, version:number) => {
       const WChar = new Uint8Array(content.slice(c.pos, c.move(2 * len)));
       // console.log('WChar', new TextDecoder('utf-16le').decode(WChar));
     }
-    //((4×7) + (2×len))×3
-    //((4×7) + (2×len))×3
+    // ((4×7) + (2×len))×3
+    // ((4×7) + (2×len))×3
     // (2 + (2xlen)) * 3
     // 2 + ((4 x 7) + 2 + (2 x len)) * 3
     const numFormat = numFormatType(new DataView(new Uint8Array(content.slice(c.pos, c.move(2))).buffer, 0).getUint16(0, true));
