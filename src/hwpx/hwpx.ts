@@ -4,6 +4,8 @@ import { X2jOptions, XMLParser } from "fast-xml-parser"
 import { Content, Header } from "../type";
 import { String2Number } from "./util";
 import SVGDocument from "../svg/SVGDocument";
+import { HwpDocument } from "../util/HwpDocument";
+// import HwpDocument from "../HWPDocument";
 const options: Partial<X2jOptions> = {
   ignoreAttributes: false,
   removeNSPrefix: true,
@@ -20,42 +22,45 @@ const options: Partial<X2jOptions> = {
 export class Hwpx extends JSZip {
   #filepath: string;
   private zip: JSZip;
-  constructor() {
+  constructor(filepath:string) {
     super();
-    if (this.#filepath !== undefined) {
-      this.Init();
-    }
+    this.#filepath = filepath;
+    this.Init();
   }
 
-  /**
-   * @param filepath 경로 설정 후 Init 함수 실행.
-   */
-  set filepath(name: string) {
-    this.#filepath = name;
-  }
-
-  /**
+   /**
    * @Function 파일을 불러 온 후 zip에 압축 푼 xml 파일.
    */
   async Init(): Promise<void> {
-    const file = await fetch(this.#filepath);
-    const arraybuffer = await file.arrayBuffer();
-    this.zip = await JSZip.loadAsync(arraybuffer);
+    if(!this.zip) {
+      const file = await fetch(this.#filepath);
+      const arraybuffer = await file.arrayBuffer();
+      this.zip = await JSZip.loadAsync(arraybuffer);
+      HwpDocument.hwpx = this;
+    }
   }
 
   /**
    * 바이너리 데이터 가져옴
    */
-  get binData():any {
+  get binData() {
     const binDatas = [];
     return (async () => {
       await this.Init();
       try {
         const name = Object.keys(this.zip.files).filter(file => file.match(/BinData/))
+        console.log(this.zip.files , name);
         await Promise.all(
           Object.keys(this.zip.files).map(async (file) => {
             if (name.includes(file)) {
-              binDatas.push(file)
+              const uint8Array = await this.zip.files[`${file}`].async("uint8array");
+              const base64 = await this.zip.files[`${file}`].async("base64");
+              const ext = file.split('.').pop();
+              const URL = window.URL.createObjectURL(
+                new Blob([uint8Array], { type: `image/${ext}`})
+              );
+              const filename = file.split('/').pop().split('.').shift();
+              binDatas.push({ name :filename, file: this.zip.files[`${file}`], src: URL, ext:ext, base64:`data:image/${ext};base64,${base64}` });
             } else {
               // return null;
             }
@@ -63,6 +68,7 @@ export class Hwpx extends JSZip {
         )
         return binDatas;
       } catch (e) {
+        return binDatas;
         console.log('e', e)
       }
     })();
@@ -116,7 +122,7 @@ export class Hwpx extends JSZip {
       }
     })();
   }
-
+  
   /**
    * section 데이터 가져옴
    * @returns XMLDocument
@@ -166,9 +172,9 @@ export class Hwpx extends JSZip {
             }
           })
         )
-        metas.forEach(element => {
-          // element.set
-        });
+        // metas.forEach(element => {
+        // element.set
+        // });
         return metas;
       } catch (e) {
         console.log('e', e)
@@ -302,8 +308,9 @@ export class Hwpx extends JSZip {
    * 그리기
    * @type { Hwpx }
    */
-  draw(): void {
-    const svg = new SVGDocument(this);
+  async draw() {
+    await this.Init();
+    const svg = new SVGDocument();
     svg.run();
   }
 }

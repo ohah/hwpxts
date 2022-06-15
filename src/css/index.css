@@ -1,5 +1,13 @@
+* {
+  margin:0;
+  bottom:0;
+}
+*::selection{
+  background-color:#cfe6ff;
+  color: white;
+}
 body {
   background-color:#e9eaed;
   text-align: center;
 }
-svg{vertical-align: top;}
+/* svg{vertical-align: top;} */

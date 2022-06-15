@@ -35,7 +35,7 @@ export class Hwp {
               itemCnt: 0,
             },
             charProperties: {
-              charPR: [],
+              charPr: [],
               itemCnt: 0,
             },
             fontfaces: {
@@ -51,7 +51,7 @@ export class Hwp {
               itemCnt: 0,
             },
             paraProperties: {
-              paraPR: [],
+              paraPr: [],
               itemCnt: 0,
             },
             styles: {
@@ -59,7 +59,7 @@ export class Hwp {
               itemCnt: 0,
             },
             tabProperties: {
-              tabPR: [],
+              tabPr: [],
               itemCnt: 0,
             },
           },

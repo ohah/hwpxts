@@ -6,10 +6,11 @@ const zip = new JSzip();
   // document.body.appendChild(svg.run());
   // const hwp = new Hwp(`./hwp/text-2.hwp`);
   // return false;
-  const hwpx = new Hwpx();
+  const hwpx = new Hwpx("./hwpx/text-2.hwpx");
   // hwpx.filepath = "./hwpx/text.hwpx";
-  hwpx.filepath = "./hwpx/text-2.hwpx";
   hwpx.draw();
+  // setTimeout(() => {
+  // }, 100);
   // hwpx.draw();
   // console.log('hwpx', hwpx);
   // console.log('hwpx', hwpx.hwpx);
@@ -17,11 +18,12 @@ const zip = new JSzip();
   // console.log('table', table);
   // console.log('array', await table.arrayBuffer());
   // console.log('header', await hwpx.header);
-  // document.body.innerHTML = JSON.stringify(await hwpx.section, null, 2);
+  // document.body.innerHTML = JSON.stringify(await hwpx.header, null, 2);
   
   // console.log('section', await hwpx.section);
   // document.body.innerHTML = JSON.stringify(await hwpx.section, null, 2);
   // document.body.style.whiteSpace = "pre-wrap";
+  // document.body.style.textAlign = "left";
   // console.log('content', await (await hwpx.content).package);
   // console.log('metaInf', await hwpx.metaInf);
   // console.log('preview', await hwpx.preview);

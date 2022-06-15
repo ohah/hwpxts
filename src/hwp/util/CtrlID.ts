@@ -1,5 +1,5 @@
 import { XMLBuilder } from "fast-xml-parser";
-import { SECPR } from "../../hwpx/type/section";
+import { SecPR } from "../../hwpx/type/section";
 import { ColPr } from "../../xml/type";
 import { Cursor } from "../cursor";
 import { HwpBlob } from "../type";

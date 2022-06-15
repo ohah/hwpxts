@@ -1,5 +1,5 @@
 import { XMLBuilder } from "fast-xml-parser";
-import { SECPR } from "../../hwpx/type/section";
+import { SecPR } from "../../hwpx/type/section";
 import { FamilyType, LineType1 } from "../../hwpx/type/xml";
 import { Cursor } from "../cursor";
 import { HwpBlob, SymMark } from "../type";

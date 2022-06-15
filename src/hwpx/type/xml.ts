@@ -280,3 +280,58 @@ export enum NumberType2 {
   /** 사용자 지정 문자 반복 */
   USER_CHAR = "USER_CHAR",
 }
+
+/**
+ * @description 테두리선 모양
+ * 객체의 테두리선 정보를 표현하기 위한 요소
+ */
+export interface lineShape {
+  /* 선 색상 */
+  color:RGBColorType
+  /* 선 굵기, 단위는 HWPUINT */
+  width:number
+  /** 
+   * @description 선 종류
+   * @default SOLID
+   */
+  style:LineType2
+  /**
+   * @description 선 끝 모양 
+   * @default "FLAT"
+   */
+  endCap:string
+  /**
+   * @description 화살표 시작 모양
+   * @type { ArrowType }
+   * @default "NORMAL"
+   */
+  headStyle:any
+  /**
+   * @description 화살표 끝 모양
+   * @type { ArrowType }
+   * @default "NORMAL"
+   */
+  tailStyle:any
+  /**
+   * @description 화살표 시작 크기
+   * @type { ArrowSize }
+   * @default "SMALL_SMALL"
+   */
+  headSz:any
+  /**
+   * 화살표 끝 크기
+   * @type { ArrowSize }
+   * @default "SMALL_SMALL"
+   */
+  tailSz:any
+  /**
+   * 테두리선의 형태
+   * @default "NORMAL"
+   */
+  outlineStyle:string
+  /**
+   * 투명도
+   * @type { float }
+   */
+  alpha:number
+}

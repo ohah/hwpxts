@@ -153,11 +153,11 @@ export const OBJECT_COMMON_ATTRIBUTE = (content: HwpBlob) => {
   // 줄 간격에 영향을 줄지 여부
   const line_spacing_influence = Bit(attr, 2, 2);
   // 세로 위치의 기준(VertRelTo)
-  const VertRelTo = Bit(attr, 3, 4) === 0 ? "paper" : Bit(attr, 3, 4) === 1 ? "page" : "para";
+  const VertRelTo = Bit(attr, 3, 4) === 0 ? "PAPER" : Bit(attr, 3, 4) === 1 ? "PAGE" : "PARA";
   // 세로 위치의 기준에 대한 상대적인 배열 방식
   const VertRelTo_relative = Bit(attr, 5, 7);
   // 가로 위치의 기준(HorzRelTo)
-  const HorzRelTo = Bit(attr, 8, 9) === 2 ? "column" : Bit(attr, 8, 9) === 3 ? "para" : "page";
+  const HorzRelTo = Bit(attr, 8, 9) === 2 ? "COLUMN" : Bit(attr, 8, 9) === 3 ? "PARA" : "PAGE";
   // HorzRelTo에 대한 상대적인 배열 방식
   const HorzRelTo_relative = Bit(attr, 10, 12);
   // VertRelTo이 'para'일 때 오브젝트의 세로 위치를 본문 영역으로 제한할지 여부
